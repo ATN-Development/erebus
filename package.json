@@ -1,0 +1,25 @@
+{
+  "name": "erebus",
+  "version": "1.0.0",
+  "description": "From the darkness to you, bring your Discord bot to a next level.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NotReallyEight/erebus.git"
+  },
+  "keywords": [
+    "discord",
+    "erebus",
+    "discord-api-wrapper",
+    "discord-api"
+  ],
+  "author": "NotReallyEight",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NotReallyEight/erebus/issues"
+  },
+  "homepage": "https://github.com/NotReallyEight/erebus#readme"
+}
