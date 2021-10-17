@@ -2,10 +2,6 @@
   "name": "erebus",
   "version": "1.0.0",
   "description": "From the darkness to you, bring your Discord bot to a next level.",
-  "main": "dist/index.js",
-  "scripts": {
-    "test": "node ."
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NotReallyEight/erebus.git"
@@ -21,5 +17,16 @@
   "bugs": {
     "url": "https://github.com/NotReallyEight/erebus/issues"
   },
-  "homepage": "https://github.com/NotReallyEight/erebus#readme"
+  "homepage": "https://github.com/NotReallyEight/erebus#readme",
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.2"
+  },
+  "dependencies": {
+    "@types/node": "^16.10.1",
+    "@types/ws": "^8.2.0",
+    "petitio": "^1.4.0",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.4",
+    "ws": "^8.2.2"
+  }
 }
