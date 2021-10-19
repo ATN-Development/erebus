@@ -1,20 +1,13 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "alwaysStrict": true,
-    "assumeChangesOnlyAffectDirectDependencies": true,
     "checkJs": true,
-    "declaration": true,
-    "declarationDir": "./types",
-    "extendedDiagnostics": true,
     "importHelpers": true,
-    "lib": [
-      "ES2020"
-    ],
     "moduleResolution": "node",
     "noEmitHelpers": true,
-    "noErrorTruncation": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
@@ -22,11 +15,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "dist",
+    "removeComments": true,
     "resolveJsonModule": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true
+    "sourceMap": true
   },
   "extends": "@tsconfig/node16/tsconfig.json",
   "include": [
