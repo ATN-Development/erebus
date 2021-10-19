@@ -9,7 +9,9 @@
     "declarationDir": "./types",
     "extendedDiagnostics": true,
     "importHelpers": true,
-    "lib": ["ES2020", "DOM"],
+    "lib": [
+      "ES2020"
+    ],
     "moduleResolution": "node",
     "noEmitHelpers": true,
     "noErrorTruncation": true,
@@ -28,7 +30,6 @@
   },
   "extends": "@tsconfig/node16/tsconfig.json",
   "include": [
-    "**/*"
-  ],
-  "exclude": ["node_modules", "dist", "types"]
+    "src/**/*"
+  ]
 }
