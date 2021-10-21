@@ -1,6 +1,7 @@
 {
   "name": "erebus",
   "version": "1.0.0",
+  "main": "dist/index.js",
   "description": "From the darkness to you, bring your Discord bot to a next level.",
   "repository": {
     "type": "git",
@@ -12,6 +13,9 @@
     "discord-api-wrapper",
     "discord-api"
   ],
+  "scripts": {
+    "test": "tsc && node ."
+  },
   "author": "NotReallyEight",
   "license": "MIT",
   "bugs": {
@@ -19,6 +23,7 @@
   },
   "homepage": "https://github.com/NotReallyEight/erebus#readme",
   "dependencies": {
+    "form-data": "^4.0.0",
     "petitio": "^1.4.0",
     "tslib": "^2.3.1",
     "typescript": "^4.4.4",

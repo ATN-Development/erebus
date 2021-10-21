@@ -1,3 +1,4 @@
+// TODO: Remove petitio and this file when the rest is ready
 import petitio from "petitio";
 import { Client } from "../Client";
 import Values from "../Values";
@@ -8,7 +9,11 @@ export class Rest {
 		this._client = client;
 	}
 
-	async request(url: string, method: petitio.HTTPMethod, authorization: boolean): Promise<any> {
+	async request(
+		url: string,
+		method: petitio.HTTPMethod,
+		authorization: boolean
+	): Promise<any> {
 		let request = await petitio(
 			`${Values.endpoints.baseURL}${Values.gatewayVersion}/${url}`,
 			method
@@ -16,7 +21,9 @@ export class Rest {
 		if (authorization) {
 			request = request.header(
 				"Authorization",
-				this._client.token.startsWith("Bot ") ? this._client.token : `Bot ${this._client.token}`
+				this._client.token.startsWith("Bot ")
+					? this._client.token
+					: `Bot ${this._client.token}`
 			);
 		}
 
