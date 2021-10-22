@@ -1,6 +1,6 @@
 export default {
 	endpoints: {
-		baseURL: "https://discord.com/api/",
+		api: "https://discord.com/api/v9",
 	},
 	gatewayVersion: "v9",
 	intents: {

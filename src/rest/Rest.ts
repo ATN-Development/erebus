@@ -1,7 +1,7 @@
 // TODO: Remove petitio and this file when the rest is ready
 import petitio from "petitio";
 import { Client } from "../Client";
-import Values from "../Values";
+import Constants from "../Constants";
 
 export class Rest {
 	_client: Client;
@@ -15,7 +15,7 @@ export class Rest {
 		authorization: boolean
 	): Promise<any> {
 		let request = await petitio(
-			`${Values.endpoints.baseURL}${Values.gatewayVersion}/${url}`,
+			`${Constants.endpoints.api}${Constants.gatewayVersion}/${url}`,
 			method
 		).header("Content-Type", "application/json");
 		if (authorization) {

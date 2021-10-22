@@ -2,8 +2,6 @@
 import { OutgoingHttpHeaders } from "node:http";
 import { URLSearchParams } from "node:url";
 
-export type APIUrl = `https://${string}discord.com/api/v${number}`;
-export type APIPrefix = "ptb" | "canary";
 export type Attachment = { name: string; data: Buffer };
 export type Json =
 	| Json[]
@@ -14,8 +12,7 @@ export type Json =
 export type Path = `/${string}`;
 export type RequestMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
 export type RequestOptions = {
-	version?: number;
-	apiPrefix?: APIPrefix;
+	url?: string;
 	userAgent?: string;
 	query?: URLSearchParams;
 	headers?: OutgoingHttpHeaders;

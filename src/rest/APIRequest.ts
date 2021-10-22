@@ -2,19 +2,16 @@ import FormData from "form-data";
 import { OutgoingHttpHeaders } from "node:http";
 import { Agent, request } from "node:https";
 import { URL, URLSearchParams } from "node:url";
+import Constants from "../Constants";
 import {
-	APIPrefix,
-	APIUrl,
 	RequestMethod,
 	Path,
 	Attachment,
 	Json,
 	Token,
 	RequestOptions,
-} from "./types";
+} from "../types";
 
-const baseUrl = (apiPrefix?: APIPrefix, version: number = 9): APIUrl =>
-	`https://${apiPrefix ? `${apiPrefix}.` : ""}discord.com/api/v${version}`;
 const agent = new Agent({ keepAlive: true });
 
 /**
@@ -61,7 +58,21 @@ export class APIRequest {
 	 * The user agent added for this request
 	 */
 	userAgent?: string;
-	private _chunk?: string | FormData;
+
+	constructor(
+		// rest: RESTManager,
+		path: Path,
+		method: "GET",
+		token: Token,
+		options?: Omit<RequestOptions, "attachments" | "body">
+	);
+	constructor(
+		// rest: RESTManager,
+		path: Path,
+		method: Exclude<RequestMethod, "GET">,
+		token: Token,
+		options?: RequestOptions
+	);
 	constructor(
 		// rest: RESTManager,
 		path: Path,
@@ -70,9 +81,8 @@ export class APIRequest {
 		options: RequestOptions = {}
 	) {
 		const {
-			apiPrefix,
 			userAgent,
-			version,
+			url = Constants.endpoints.api,
 			query = new URLSearchParams(),
 			headers,
 			attachments = [],
@@ -88,7 +98,7 @@ export class APIRequest {
 		this.body = body;
 		this.query = query;
 
-		this.url = new URL(baseUrl(apiPrefix, version) + path);
+		this.url = new URL(url + path);
 		this.url.search = query.toString();
 
 		this.headers = {
@@ -100,24 +110,6 @@ export class APIRequest {
 		};
 
 		if (userAgent) this.userAgent = userAgent;
-
-		if (attachments.length) {
-			this._chunk = new FormData();
-			for (const { data, name } of attachments) this._chunk.append(name, data);
-			if (body != null)
-				this._chunk.append("payload_json", JSON.stringify(body));
-			this.headers = {
-				...this.headers,
-				...this._chunk.getHeaders(),
-			};
-		} else if (body != null) {
-			this._chunk = JSON.stringify(body);
-			this.headers = {
-				...this.headers,
-				"Content-Type": "application/json",
-				"Content-Length": this._chunk.length,
-			};
-		}
 	}
 
 	/**
@@ -125,12 +117,32 @@ export class APIRequest {
 	 * @returns A promise with the data received from the API or null if there is no data
 	 */
 	send() {
+		let chunk: string | FormData;
 		let response = "";
 
 		const controller = new AbortController();
 		const timeout = setTimeout(() => {
 			controller.abort();
 		}, 5_000).unref();
+
+		if (this.attachments.length) {
+			chunk = new FormData();
+			for (const { data, name } of this.attachments) chunk.append(name, data);
+			if (this.body != null)
+				chunk.append("payload_json", JSON.stringify(this.body));
+			this.headers = {
+				...this.headers,
+				...chunk.getHeaders(),
+			};
+		} else if (this.body != null) {
+			chunk = JSON.stringify(this.body);
+			this.headers = {
+				...this.headers,
+				"Content-Type": "application/json",
+				"Content-Length": chunk.length,
+			};
+		}
+
 		return new Promise<string | null>((resolve, reject) => {
 			const req = request(
 				this.url,
@@ -156,9 +168,41 @@ export class APIRequest {
 					)
 				)
 			);
-			if (this._chunk) req.write(this._chunk);
+			if (chunk) req.write(chunk);
 			req.end();
 		});
+	}
+
+	/**
+	 * Add some attachments to this request
+	 * @param attachments - Attachments to add
+	 * @returns The new request
+	 */
+	addAttachments(...attachments: NonNullable<RequestOptions["attachments"]>) {
+		this.attachments.push(...attachments);
+		return this;
+	}
+
+	/**
+	 * Remove some attachments from this request
+	 * @param attachments - Attachments to remove
+	 * @returns The new request
+	 */
+	removeAttachments(...attachments: string[]) {
+		this.attachments = this.attachments.filter(
+			(att) => !attachments.includes(att.name)
+		);
+		return this;
+	}
+
+	/**
+	 * Edit headers for this request
+	 * @param headers - Headers to add/remove
+	 * @returns The new request
+	 */
+	editHeaders(headers: RequestOptions["headers"]) {
+		this.headers = { ...this.headers, ...headers };
+		return this;
 	}
 }
 
