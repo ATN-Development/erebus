@@ -126,6 +126,12 @@ export class APIRequest {
 		}, 5_000).unref();
 
 		if (this.attachments.length) {
+			if (this.method === "GET")
+				throw new TypeError(
+					"Cannot send attachments data to " +
+						this.path +
+						" path with method GET"
+				);
 			chunk = new FormData();
 			for (const { data, name } of this.attachments) chunk.append(name, data);
 			if (this.body != null)
@@ -135,6 +141,10 @@ export class APIRequest {
 				...chunk.getHeaders(),
 			};
 		} else if (this.body != null) {
+			if (this.method === "GET")
+				throw new TypeError(
+					"Cannot send JSON data to " + this.path + " path with method GET"
+				);
 			chunk = JSON.stringify(this.body);
 			this.headers = {
 				...this.headers,
