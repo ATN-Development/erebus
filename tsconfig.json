@@ -16,7 +16,6 @@
     "noUnusedParameters": true,
     "outDir": "dist",
     "removeComments": true,
-    "resolveJsonModule": true,
     "sourceMap": true
   },
   "extends": "@tsconfig/node16/tsconfig.json",

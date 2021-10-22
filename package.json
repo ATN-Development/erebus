@@ -5,7 +5,7 @@
   "description": "From the darkness to you, bring your Discord bot to a next level.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NotReallyEight/erebus.git"
+    "url": "https://github.com/NotReallyEight/erebus.git"
   },
   "keywords": [
     "discord",

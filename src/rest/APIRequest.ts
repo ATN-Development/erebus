@@ -1,3 +1,4 @@
+// TODO: Uncomment lines with rest when its ready
 import FormData from "form-data";
 import { OutgoingHttpHeaders } from "node:http";
 import { Agent, request } from "node:https";
@@ -10,8 +11,11 @@ import {
 	Json,
 	Token,
 	RequestOptions,
+	RequestStatus,
+	Response,
 } from "../types";
 
+const { homepage, version } = require("../../package.json");
 const agent = new Agent({ keepAlive: true });
 
 /**
@@ -43,9 +47,13 @@ export class APIRequest {
 	 */
 	query: URLSearchParams;
 	/**
-	 * TODO: The rest manager that instantiated this
+	 * The rest manager that instantiated this
 	 */
 	// rest: RESTManager;
+	/**
+	 * The status of this request
+	 */
+	status = RequestStatus.Created;
 	/**
 	 * Token used for the request
 	 */
@@ -57,7 +65,7 @@ export class APIRequest {
 	/**
 	 * The user agent added for this request
 	 */
-	userAgent?: string;
+	userAgent: string | null = null;
 
 	constructor(
 		// rest: RESTManager,
@@ -91,7 +99,7 @@ export class APIRequest {
 
 		this.method = method;
 		this.path = path;
-		// TODO: this.rest = rest;
+		// this.rest = rest;
 		this.token = token;
 
 		this.attachments = attachments;
@@ -103,7 +111,7 @@ export class APIRequest {
 
 		this.headers = {
 			...headers,
-			"User-Agent": `DiscordBot (https://github.com/NotReallyEight/erebus, 1.0.0)${
+			"User-Agent": `DiscordBot (${homepage}, ${version})${
 				userAgent ? ` ${userAgent}` : ""
 			}`,
 			"Authorization": `Bot ${token}`,
@@ -118,7 +126,7 @@ export class APIRequest {
 	 */
 	send() {
 		let chunk: string | FormData;
-		let response = "";
+		let data = "";
 
 		const controller = new AbortController();
 		const timeout = setTimeout(() => {
@@ -128,9 +136,7 @@ export class APIRequest {
 		if (this.attachments.length) {
 			if (this.method === "GET")
 				throw new TypeError(
-					"Cannot send attachments data to " +
-						this.path +
-						" path with method GET"
+					`Cannot send attachments data to ${this.path} path with method GET`
 				);
 			chunk = new FormData();
 			for (const { data, name } of this.attachments) chunk.append(name, data);
@@ -143,7 +149,7 @@ export class APIRequest {
 		} else if (this.body != null) {
 			if (this.method === "GET")
 				throw new TypeError(
-					"Cannot send JSON data to " + this.path + " path with method GET"
+					`Cannot send JSON data to ${this.path} path with method GET`
 				);
 			chunk = JSON.stringify(this.body);
 			this.headers = {
@@ -153,7 +159,9 @@ export class APIRequest {
 			};
 		}
 
-		return new Promise<string | null>((resolve, reject) => {
+		return new Promise<Response>((resolve, reject) => {
+			this.status = RequestStatus.InProgress;
+
 			const req = request(
 				this.url,
 				{
@@ -163,21 +171,35 @@ export class APIRequest {
 					method: this.method,
 				},
 				(res) => {
-					res.on("data", (d) => (response += d));
+					res.on("data", (d) => {
+						data += d;
+					});
 					res.once("end", () => {
+						if (!res.complete)
+							throw new Error(
+								`Request to path ${this.path} ended before all data was transferred.`
+							);
 						clearTimeout(timeout);
-						resolve(response || null);
+						resolve({
+							data: data || null,
+							code: res.statusCode!,
+							headers: res.headers,
+							message: res.statusMessage!,
+							request: this,
+						});
+						this.status = RequestStatus.Finished;
 					});
 				}
 			);
 
-			req.once("error", (error) =>
+			req.once("error", (error) => {
 				reject(
 					new Error(
 						`Request to ${this.url.href} failed with reason: ${error.message}`
 					)
-				)
-			);
+				);
+				this.status = RequestStatus.Failed;
+			});
 			if (chunk) req.write(chunk);
 			req.end();
 		});

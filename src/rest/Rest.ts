@@ -2,11 +2,13 @@
 import petitio from "petitio";
 import { Client } from "../Client";
 import Constants from "../Constants";
+import APIRequest from "./APIRequest";
 
 export class Rest {
-	_client: Client;
+	client: Client;
+	requests: APIRequest[] = [];
 	constructor(client: Client) {
-		this._client = client;
+		this.client = client;
 	}
 
 	async request(
@@ -21,9 +23,9 @@ export class Rest {
 		if (authorization) {
 			request = request.header(
 				"Authorization",
-				this._client.token.startsWith("Bot ")
-					? this._client.token
-					: `Bot ${this._client.token}`
+				this.client.token.startsWith("Bot ")
+					? this.client.token
+					: `Bot ${this.client.token}`
 			);
 		}
 
