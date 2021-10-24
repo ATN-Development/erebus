@@ -16,6 +16,48 @@ export interface Attachment {
 	data: Buffer;
 }
 /**
+ * Data about ratelimits related to a bucket
+ */
+export interface RateLimitHandler {
+	/**
+	 * A unique string denoting the rate limit being encountered
+	 */
+	bucket: string;
+	/**
+	 * The number of requests that can be made
+	 */
+	limit: number;
+	/**
+	 * The number of remaining requests that can be made
+	 */
+	remaining: number;
+	/**
+	 * Epoch time (seconds) at which the rate limit resets
+	 */
+	reset?: number;
+	/**
+	 * Routes that share the same bucket
+	 */
+	routes: { method: RequestMethod; route: Path }[];
+}
+/**
+ * A JSON response from the API with a 429 status code
+ */
+export interface RateLimitResponse {
+	/**
+	 * A value indicating if you are being globally rate limited or not
+	 */
+	global: boolean;
+	/**
+	 * A message saying you are being rate limited
+	 */
+	message: string;
+	/**
+	 * The number of seconds to wait before submitting another request.
+	 */
+	retry_after: number;
+}
+/**
  * Any JSON data
  */
 export type Json =
@@ -65,7 +107,7 @@ export interface RequestOptions {
  * The status of a request to the API
  */
 export enum RequestStatus {
-	Created,
+	Pending,
 	InProgress,
 	Finished,
 	Failed,
@@ -81,7 +123,7 @@ export interface Response {
 	/**
 	 * The status code received for this request
 	 */
-	code: number;
+	statusCode: number;
 	/**
 	 * Headers received from the API
 	 */
@@ -89,7 +131,7 @@ export interface Response {
 	/**
 	 * The status message received for this request
 	 */
-	message: string;
+	status: string;
 	/**
 	 * The APIRequest object that instantiated this
 	 */

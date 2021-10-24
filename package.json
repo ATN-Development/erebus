@@ -23,6 +23,8 @@
   },
   "homepage": "https://github.com/NotReallyEight/erebus#readme",
   "dependencies": {
+    "@sapphire/async-queue": "^1.1.7",
+    "discord-api-types": "^0.24.0",
     "form-data": "^4.0.0",
     "petitio": "^1.4.0",
     "tslib": "^2.3.1",

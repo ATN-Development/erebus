@@ -1,6 +1,7 @@
 import EventEmitter from "events";
 import WebSocket from "ws";
 import { Rest } from "./rest/Rest";
+import { Routes } from "discord-api-types/v9";
 
 export interface ClientOptions {
 	token: string;
@@ -36,18 +37,18 @@ export class Client extends EventEmitter {
 	token: string;
 	largeThreshold: number;
 	heartbeatInfo: HeartbeatInfo;
-	private _rest: Rest;
+	rest: Rest;
 	intents: Intents;
 	constructor(options: ClientOptions) {
 		super();
 		this.ws = undefined;
-		this.token = options.token.startsWith("Bot ") ? options.token : `Bot ${options.token}`;
+		this.token = options.token;
 		this.largeThreshold = options.largeThreshold ? options.largeThreshold : 50;
 		this.heartbeatInfo = {
 			first: true,
 			acknowledged: false,
 		};
-		this._rest = new Rest(this);
+		this.rest = new Rest(this);
 		this.intents = options.intents;
 	}
 
@@ -64,20 +65,20 @@ export class Client extends EventEmitter {
 	}
 
 	async getGateway(): Promise<string> {
-		let response = await this._rest.request("gateway", "GET", false);
+		const response = await this.rest.request<any>(Routes.gateway(), "GET");
 		return response.url;
 	}
 
-	private async identify(): Promise<any> {
-		const payload = {
-			token: this.token,
-			properties: {
-				$os: process.platform,
-				$browser: "erebus",
-				$device: "erebus",
-			},
-			large_threshold: this.largeThreshold,
-			intents: this.intents,
-		};
-	}
+	// private async identify(): Promise<any> {
+	// 	const payload = {
+	// 		token: this.token,
+	// 		properties: {
+	// 			$os: process.platform,
+	// 			$browser: "erebus",
+	// 			$device: "erebus",
+	// 		},
+	// 		large_threshold: this.largeThreshold,
+	// 		intents: this.intents,
+	// 	};
+	// }
 }

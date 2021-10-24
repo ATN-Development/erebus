@@ -1,4 +1,3 @@
-// TODO: Uncomment lines with rest when its ready
 import FormData from "form-data";
 import { OutgoingHttpHeaders } from "node:http";
 import { Agent, request } from "node:https";
@@ -9,11 +8,11 @@ import {
 	Path,
 	Attachment,
 	Json,
-	Token,
 	RequestOptions,
 	RequestStatus,
 	Response,
 } from "../types";
+import { Rest } from "./Rest";
 
 const { homepage, version } = require("../../package.json");
 const agent = new Agent({ keepAlive: true });
@@ -49,15 +48,11 @@ export class APIRequest {
 	/**
 	 * The rest manager that instantiated this
 	 */
-	// rest: RESTManager;
+	rest: Rest;
 	/**
 	 * The status of this request
 	 */
-	status = RequestStatus.Created;
-	/**
-	 * Token used for the request
-	 */
-	token: Token;
+	status = RequestStatus.Pending;
 	/**
 	 * The full URL object of this request
 	 */
@@ -67,25 +62,16 @@ export class APIRequest {
 	 */
 	userAgent: string | null = null;
 
+	/**
+	 * @param rest The rest that instantiated this
+	 * @param path The path to request
+	 * @param method The method of the request
+	 * @param options Options for this request
+	 */
 	constructor(
-		// rest: RESTManager,
-		path: Path,
-		method: "GET",
-		token: Token,
-		options?: Omit<RequestOptions, "attachments" | "body">
-	);
-	constructor(
-		// rest: RESTManager,
-		path: Path,
-		method: Exclude<RequestMethod, "GET">,
-		token: Token,
-		options?: RequestOptions
-	);
-	constructor(
-		// rest: RESTManager,
+		rest: Rest,
 		path: Path,
 		method: RequestMethod,
-		token: Token,
 		options: RequestOptions = {}
 	) {
 		const {
@@ -99,8 +85,7 @@ export class APIRequest {
 
 		this.method = method;
 		this.path = path;
-		// this.rest = rest;
-		this.token = token;
+		this.rest = rest;
 
 		this.attachments = attachments;
 		this.body = body;
@@ -114,7 +99,7 @@ export class APIRequest {
 			"User-Agent": `DiscordBot (${homepage}, ${version})${
 				userAgent ? ` ${userAgent}` : ""
 			}`,
-			"Authorization": `Bot ${token}`,
+			"Authorization": `Bot ${rest.client.token}`,
 		};
 
 		if (userAgent) this.userAgent = userAgent;
@@ -124,7 +109,7 @@ export class APIRequest {
 	 * The route of this request
 	 */
 	get route() {
-		return this.path.replace(/(?<=\/)\d{17,19}/g, ":id");
+		return this.path.replace(/(?<=\/)\d{17,19}/g, ":id") as Path;
 	}
 
 	/**
@@ -133,12 +118,6 @@ export class APIRequest {
 	 */
 	send() {
 		let chunk: string | FormData;
-		let data = "";
-
-		const controller = new AbortController();
-		const timeout = setTimeout(() => {
-			controller.abort();
-		}, 5_000).unref();
 
 		if (this.attachments.length) {
 			if (this.method === "GET")
@@ -168,48 +147,67 @@ export class APIRequest {
 
 		return new Promise<Response>((resolve, reject) => {
 			this.status = RequestStatus.InProgress;
-
-			const req = request(
-				this.url,
-				{
-					abort: controller.signal,
-					agent,
-					headers: this.headers,
-					method: this.method,
-				},
-				(res) => {
-					res.on("data", (d) => {
-						data += d;
-					});
-					res.once("end", () => {
-						if (!res.complete)
-							throw new Error(
-								`Request to path ${this.path} ended before all data was transferred.`
-							);
-						clearTimeout(timeout);
-						resolve({
-							data: data || null,
-							code: res.statusCode!,
-							headers: res.headers,
-							message: res.statusMessage!,
-							request: this,
-						});
-						this.status = RequestStatus.Finished;
-					});
-				}
-			);
-
-			req.once("error", (error) => {
-				reject(
-					new Error(
-						`Request to ${this.url.href} failed with reason: ${error.message}`
-					)
-				);
-				this.status = RequestStatus.Failed;
-			});
-			if (chunk) req.write(chunk);
-			req.end();
+			this.make(resolve, reject, chunk);
 		});
+	}
+
+	private make(
+		resolve: (value: Response | PromiseLike<Response>) => void,
+		reject: (reason?: any) => void,
+		chunk: string | FormData
+	) {
+		let data = "";
+		const controller = new AbortController();
+		const timeout = setTimeout(() => {
+			controller.abort();
+		}, 5_000).unref();
+		const req = request(
+			this.url,
+			{
+				abort: controller.signal,
+				agent,
+				headers: this.headers,
+				method: this.method,
+			},
+			(res) => {
+				if ([301, 302].includes(res.statusCode!) && res.headers.location) {
+					this.url.href = res.headers.location;
+					this.url.search = this.query.toString();
+					return this.make(resolve, reject, chunk);
+				}
+				res.on("data", (d) => {
+					data += d;
+				});
+				res.once("end", () => {
+					if (!res.complete)
+						throw new Error(
+							`Request to path ${this.path} ended before all data was transferred.`
+						);
+					clearTimeout(timeout);
+					resolve({
+						data: data || null,
+						statusCode: res.statusCode!,
+						headers: res.headers,
+						status: res.statusMessage!,
+						request: this,
+					});
+					this.status = RequestStatus.Finished;
+				});
+				return;
+			}
+		);
+
+		req.once("error", (error) => {
+			reject(
+				new Error(
+					`Request to ${this.url.href} failed with reason: ${error.message}`
+				)
+			);
+			this.status = RequestStatus.Failed;
+		});
+		if (chunk) req.write(chunk);
+		req.end();
+		return data;
 	}
 
 	/**
