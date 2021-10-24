@@ -121,6 +121,13 @@ export class APIRequest {
 	}
 
 	/**
+	 * The route of this request
+	 */
+	get route() {
+		return this.path.replace(/(?<=\/)\d{17,19}/g, ":id");
+	}
+
+	/**
 	 * Send the request to the api.
 	 * @returns A promise with the data received from the API or null if there is no data
 	 */
