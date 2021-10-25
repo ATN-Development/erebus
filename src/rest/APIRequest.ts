@@ -1,8 +1,8 @@
+import { RouteBases } from "discord-api-types/v9";
 import FormData from "form-data";
 import { OutgoingHttpHeaders } from "node:http";
 import { Agent, request } from "node:https";
 import { URL, URLSearchParams } from "node:url";
-import Constants from "../Constants";
 import {
 	RequestMethod,
 	Path,
@@ -25,48 +25,57 @@ export class APIRequest {
 	 * A list of attachments to send
 	 */
 	attachments: Attachment[];
+
+	/**
+	 * The base url of this request
+	 */
+	baseUrl: string;
+
 	/**
 	 * The JSON body to send
 	 */
 	body?: Json;
+
 	/**
 	 * Headers to be sent in the request
 	 */
 	headers: OutgoingHttpHeaders;
+
 	/**
 	 * Method used for this request
 	 */
 	method: RequestMethod;
+
 	/**
 	 * The path of this request
 	 */
 	path: Path;
+
 	/**
 	 * Query applied to the request
 	 */
 	query: URLSearchParams;
+
 	/**
 	 * The rest manager that instantiated this
 	 */
 	rest: Rest;
+
 	/**
 	 * The status of this request
 	 */
 	status = RequestStatus.Pending;
-	/**
-	 * The full URL object of this request
-	 */
-	url: URL;
+
 	/**
 	 * The user agent added for this request
 	 */
 	userAgent: string | null = null;
 
 	/**
-	 * @param rest The rest that instantiated this
-	 * @param path The path to request
-	 * @param method The method of the request
-	 * @param options Options for this request
+	 * @param rest - The rest that instantiated this
+	 * @param path - The path to request
+	 * @param method - The method of the request
+	 * @param options - Options for this request
 	 */
 	constructor(
 		rest: Rest,
@@ -76,7 +85,7 @@ export class APIRequest {
 	) {
 		const {
 			userAgent,
-			url = Constants.endpoints.api,
+			url = RouteBases.api,
 			query = new URLSearchParams(),
 			headers,
 			attachments = [],
@@ -88,21 +97,31 @@ export class APIRequest {
 		this.rest = rest;
 
 		this.attachments = attachments;
+		this.baseUrl = url;
 		this.body = body;
 		this.query = query;
 
-		this.url = new URL(url + path);
-		this.url.search = query.toString();
-
 		this.headers = {
 			...headers,
+			// https://discord.com/developers/docs/reference#user-agent
 			"User-Agent": `DiscordBot (${homepage}, ${version})${
 				userAgent ? ` ${userAgent}` : ""
 			}`,
+			// Use a bot token to authenticate the request
 			"Authorization": `Bot ${rest.client.token}`,
 		};
 
 		if (userAgent) this.userAgent = userAgent;
+	}
+
+	/**
+	 * The full URL of this request
+	 */
+	get url() {
+		const url = new URL(this.baseUrl + this.path);
+
+		url.search = this.query.toString();
+		return url;
 	}
 
 	/**
@@ -124,12 +143,16 @@ export class APIRequest {
 				throw new TypeError(
 					`Cannot send attachments data to ${this.path} path with method GET`
 				);
+
 			chunk = new FormData();
+			// Append all the attachments to the data
 			for (const { data, name } of this.attachments) chunk.append(name, data);
 			if (this.body != null)
+				// If there is a json body too we'll use the payload_json property
 				chunk.append("payload_json", JSON.stringify(this.body));
 			this.headers = {
 				...this.headers,
+				// Add headers related to the form data
 				...chunk.getHeaders(),
 			};
 		} else if (this.body != null) {
@@ -151,14 +174,22 @@ export class APIRequest {
 		});
 	}
 
+	/**
+	 * Make the request to the API.
+	 * @param resolve A function to resolve the promise
+	 * @param reject A function to reject the promise
+	 * @param chunk The chunk to send
+	 */
 	private make(
 		resolve: (value: Response | PromiseLike<Response>) => void,
 		reject: (reason?: any) => void,
 		chunk: string | FormData
 	) {
+		// This is the data we'll receive
 		let data = "";
 		const controller = new AbortController();
 		const timeout = setTimeout(() => {
+			// Abort the request if it takes more than 5 sec
 			controller.abort();
 		}, 5_000).unref();
 		const req = request(
@@ -170,11 +201,14 @@ export class APIRequest {
 				method: this.method,
 			},
 			(res) => {
+				// Handle a possible redirect
 				if ([301, 302].includes(res.statusCode!) && res.headers.location) {
 					this.url.href = res.headers.location;
 					this.url.search = this.query.toString();
 					return this.make(resolve, reject, chunk);
 				}
+
+				// Handle the data received
 				res.on("data", (d) => {
 					data += d;
 				});
@@ -205,9 +239,9 @@ export class APIRequest {
 			);
 			this.status = RequestStatus.Failed;
 		});
+		// Send the data, if present
 		if (chunk) req.write(chunk);
 		req.end();
-		return data;
 	}
 
 	/**

@@ -18,6 +18,70 @@ export interface Attachment {
 }
 
 /**
+ * Options to instantiate a client
+ */
+export interface ClientOptions {
+	/**
+	 * The token of this client
+	 */
+	token: Token;
+
+	/**
+	 * Total number of members where the gateway will stop sending offline members in the guild member list
+	 */
+	largeThreshold?: number;
+
+	/**
+	 * Intents to use for this client
+	 */
+	intents: Intents;
+}
+
+/**
+ * Data about an heartbeat
+ */
+export interface HeartbeatInfo {
+	first: boolean;
+	acknowledged: boolean;
+}
+
+/**
+ * Intents to send to the API
+ */
+export enum Intents {
+	guilds = 1,
+	guildMembers = 2,
+	guildBans = 4,
+	guildEmojis = 8,
+	guildIntegrations = 16,
+	guildWebhooks = 32,
+	guildInvites = 64,
+	guildVoiceStates = 128,
+	guildPresences = 256,
+	guildMessages = 512,
+	guildMessageReactions = 1024,
+	guildMessageTyping = 2048,
+	directMessages = 4096,
+	directMessageReactions = 8192,
+	directMessageTyping = 16384,
+}
+
+/**
+ * Any JSON data
+ */
+export type Json =
+	| Json[]
+	| boolean
+	| number
+	| string
+	| { [property: string]: Json };
+
+/**
+ * The path for a request to the API
+ */
+export type Path = `/${string}`;
+
+/**
  * Data about ratelimits related to a bucket
  */
 export interface RateLimitHandler {
@@ -66,21 +130,6 @@ export interface RateLimitResponse {
 	 */
 	retry_after: number;
 }
-
-/**
- * Any JSON data
- */
-export type Json =
-	| Json[]
-	| boolean
-	| number
-	| string
-	| { [property: string]: Json };
-
-/**
- * The path for a request to the API
- */
-export type Path = `/${string}`;
 
 /**
  * The method of a request to the API

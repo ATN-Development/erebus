@@ -1,8 +1,5 @@
 export default {
-	endpoints: {
-		api: "https://discord.com/api/v9",
-	},
-	gatewayVersion: "v9",
+	gatewayVersion: 9,
 	intents: {
 		guilds: 1 << 0,
 		guildMembers: 1 << 1,

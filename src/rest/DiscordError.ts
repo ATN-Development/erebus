@@ -15,48 +15,53 @@ export class DiscordError extends Error {
 	/**
 	 * The attachments sent in the request
 	 */
-	attachments: Attachment[];
+	attachments?: Attachment[];
+
 	/**
 	 * The body sent in the request, if any
 	 */
 	body?: Json;
-	/**
-	 * The error received from the API
-	 */
-	error: string;
+
 	/**
 	 * Headers sent in the request
 	 */
 	headers: OutgoingHttpHeaders;
+
 	/**
 	 * Method used in the request
 	 */
 	method: RequestMethod;
+
 	/**
 	 * Path of the request
 	 */
 	path: Path;
+
 	/**
 	 * The query of the request
 	 */
-	query: string;
+	query?: string;
+
 	/**
 	 * The status message received from the API
 	 */
 	status: string;
+
 	/**
 	 * The status code received for this request
 	 */
 	statusCode: number;
 
 	/**
-	 * @param request The request sent
-	 * @param res The response received
+	 * @param request - The request sent
+	 * @param res - The response received
 	 */
 	constructor(request: APIRequest, res: Response) {
 		let error: string;
+		const query = request.query.toString();
 
 		if (res.data) {
+			// Parse any JSON error data
 			const errorData = JSON.parse(res.data) as DiscordAPIError;
 
 			error = errorData.errors
@@ -68,30 +73,34 @@ export class DiscordError extends Error {
 		} else error = res.status;
 		super(error);
 
-		this.attachments = request.attachments;
-		this.body = request.body;
-		this.error = error;
+		if (query) this.query = query;
+
+		if (request.attachments.length) this.attachments = request.attachments;
+		if (request.body) this.body = request.body;
+
 		this.headers = request.headers;
 		this.method = request.method;
-		this.name = this.constructor.name;
 		this.path = request.path;
-		this.query = request.query.toString();
 		this.status = res.status;
 		this.statusCode = res.statusCode;
 	}
 
 	/**
 	 * Resolve a JSON error data received from the API.
-	 * @param errorData The error data received from the API
-	 * @param error The error string to use
+	 * @param errorData - The error data received from the API
+	 * @param error - The error string to use
 	 * @returns The resolved error
 	 */
 	private static handleErrors(errorData: DiscordErrorData, error = "") {
+		// If the error data is just a string, add it to the error
 		if (typeof errorData === "string") error += `${errorData}\n`;
 		else if (this.isFieldInformation(errorData))
+			// If it's a field information, use the message property
 			error += `${errorData.message}\n`;
 		else if (this.isGroupWrapper(errorData))
+			// If it's a group wrapper add all the errors received
 			error += `${errorData._errors.map((err) => err.message).join(" ")}\n`;
+		// If it's a custom error parse it
 		else
 			Object.entries(errorData).forEach(
 				([k, v]) => (error = this.handleObject(k, v, error))
@@ -102,29 +111,38 @@ export class DiscordError extends Error {
 
 	/**
 	 * Resolve an object error data.
-	 * @param k The key
-	 * @param v The value
-	 * @param error The error string to use
+	 * @param k - The key
+	 * @param v - The value
+	 * @param error - The error string to use
 	 * @returns The resolved error
 	 */
 	private static handleObject(k: string, v: DiscordErrorData, error: string) {
+		// Check if the key is from an array
 		const isArray = !isNaN(+k);
 
-		error += `${error.at(-1) !== "\n" && !isArray ? "." : ""}${
-			isArray ? `[${k}]` : k
-		}`;
+		// If it's an array, put the key in brackets
+		error += `${isArray ? `[${k}]` : k}`;
+
 		if (
 			typeof v === "string" ||
 			this.isFieldInformation(v) ||
 			this.isGroupWrapper(v)
 		)
+			// If it's a normal error message, use the default resolver
 			error += `: ${this.handleErrors(v)}`;
 		else {
 			let prop: string | string[] = error.split("\n");
+
+			// Save the "path" of the error
 			prop = prop.at(-1) ?? prop.at(-2)!;
+			// Do this again until all nested objects are parsed
 			Object.entries(v).forEach(
 				([k1, v1], i) =>
-					(error = this.handleObject(k1, v1, `${error}${i ? prop : ""}`))
+					(error = this.handleObject(
+						k1,
+						v1,
+						`${error}${i ? prop : ""}${isArray ? "" : "."}`
+					))
 			);
 		}
 
@@ -133,7 +151,7 @@ export class DiscordError extends Error {
 
 	/**
 	 * Check if an error is a group wrapper.
-	 * @param errorData The error data received
+	 * @param errorData - The error data received
 	 * @returns If the error is a group wrapper
 	 */
 	private static isGroupWrapper(
@@ -144,7 +162,7 @@ export class DiscordError extends Error {
 
 	/**
 	 * Check if an error is a field information.
-	 * @param errorData The error data received
+	 * @param errorData - The error data received
 	 * @returns If the error is a field information
 	 */
 	private static isFieldInformation(

@@ -1,44 +1,46 @@
 import EventEmitter from "events";
 import WebSocket from "ws";
 import { Rest } from "./rest/Rest";
-import { Routes } from "discord-api-types/v9";
+import { APIGatewayInfo, Routes } from "discord-api-types/v9";
+import { ClientOptions, HeartbeatInfo, Intents } from "./types";
 
-export interface ClientOptions {
-	token: string;
-	largeThreshold?: number;
-	intents: Intents;
-}
-
-export interface HeartbeatInfo {
-	first: boolean;
-	acknowledged: boolean;
-}
-
-export enum Intents {
-	guilds = 1,
-	guildMembers = 2,
-	guildBans = 4,
-	guildEmojis = 8,
-	guildIntegrations = 16,
-	guildWebhooks = 32,
-	guildInvites = 64,
-	guildVoiceStates = 128,
-	guildPresences = 256,
-	guildMessages = 512,
-	guildMessageReactions = 1024,
-	guildMessageTyping = 2048,
-	directMessages = 4096,
-	directMessageReactions = 8192,
-	directMessageTyping = 16384,
-}
-
+/**
+ * A Discord client
+ */
 export class Client extends EventEmitter {
+	/**
+	 * The websocket of this client
+	 */
 	ws?: WebSocket;
+
+	/**
+	 * The token used by this client
+	 */
 	token: string;
+
+	/**
+	 * Total number of members where the gateway will stop sending offline members in the guild member list
+	 */
 	largeThreshold: number;
+
+	/**
+	 * Data about an heartbeat
+	 */
 	heartbeatInfo: HeartbeatInfo;
+
+	/**
+	 * The rest manager of this client
+	 */
 	rest: Rest;
+
+	/**
+	 * Intents used by this client
+	 */
 	intents: Intents;
+
+	/**
+	 * @param options - Options for the client
+	 */
 	constructor(options: ClientOptions) {
 		super();
 		this.ws = undefined;
@@ -52,33 +54,37 @@ export class Client extends EventEmitter {
 		this.intents = options.intents;
 	}
 
-	async connect(): Promise<any> {
-		let url = await this.getGateway();
-
-		if (!url.endsWith("/")) {
-			url = url + "/";
-		}
-
-		this.ws = new WebSocket(`${url}?v=9&encoding=json`);
-
+	/**
+	 * Connect this client to the websocket.
+	 */
+	async connect() {
+		this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
 		this.ws.on("open", () => {});
 	}
 
-	async getGateway(): Promise<string> {
-		const response = await this.rest.request<any>(Routes.gateway(), "GET");
-		return response.url;
+	/**
+	 * Get the gateway url.
+	 * @returns The gateway url
+	 */
+	getGateway() {
+		return this.rest
+			.request<APIGatewayInfo>(Routes.gateway(), "GET")
+			.then((info) => info.url);
 	}
 
-	// private async identify(): Promise<any> {
-	// 	const payload = {
-	// 		token: this.token,
-	// 		properties: {
-	// 			$os: process.platform,
-	// 			$browser: "erebus",
-	// 			$device: "erebus",
-	// 		},
-	// 		large_threshold: this.largeThreshold,
-	// 		intents: this.intents,
-	// 	};
-	// }
+	/**
+	 * Send an identify payload
+	 */
+	async identify() {
+		// const payload = {
+		// 	token: this.token,
+		// 	properties: {
+		// 		$os: process.platform,
+		// 		$browser: "erebus",
+		// 		$device: "erebus",
+		// 	},
+		// 	large_threshold: this.largeThreshold,
+		// 	intents: this.intents,
+		// };
+	}
 }
