@@ -18,7 +18,7 @@
     "removeComments": true,
     "sourceMap": true
   },
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "@tsconfig/node14/tsconfig.json",
   "include": [
     "src/**/*"
   ]

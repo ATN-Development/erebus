@@ -13,6 +13,9 @@
     "discord-api-wrapper",
     "discord-api"
   ],
+  "engines": {
+    "node": ">=14.18.1"
+  },
   "scripts": {
     "test": "tsc && node ."
   },
@@ -24,16 +27,15 @@
   "homepage": "https://github.com/NotReallyEight/erebus#readme",
   "dependencies": {
     "@sapphire/async-queue": "^1.1.7",
+    "@tsconfig/node14": "^1.0.1",
     "discord-api-types": "^0.24.0",
     "form-data": "^4.0.0",
-    "petitio": "^1.4.0",
     "tslib": "^2.3.1",
-    "typescript": "^4.4.4",
     "ws": "^8.2.2"
   },
   "devDependencies": {
-    "@tsconfig/node16": "^1.0.2",
-    "@types/node": "^16.11.5",
-    "@types/ws": "^8.2.0"
+    "@types/node": "^14.17.31",
+    "@types/ws": "^8.2.0",
+    "typescript": "^4.4.4"
   }
 }

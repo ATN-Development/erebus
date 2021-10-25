@@ -1,8 +1,8 @@
 import { RouteBases } from "discord-api-types/v9";
 import FormData from "form-data";
-import { OutgoingHttpHeaders } from "node:http";
-import { Agent, request } from "node:https";
-import { URL, URLSearchParams } from "node:url";
+import { OutgoingHttpHeaders } from "http";
+import { Agent, request } from "https";
+import { URL, URLSearchParams } from "url";
 import {
 	RequestMethod,
 	Path,
@@ -187,15 +187,17 @@ export class APIRequest {
 	) {
 		// This is the data we'll receive
 		let data = "";
-		const controller = new AbortController();
 		const timeout = setTimeout(() => {
 			// Abort the request if it takes more than 5 sec
-			controller.abort();
+			req.destroy(
+				new Error(
+					`Request to path ${this.path} took more than 5 seconds and was aborted before ending.`
+				)
+			);
 		}, 5_000).unref();
 		const req = request(
 			this.url,
 			{
-				abort: controller.signal,
 				agent,
 				headers: this.headers,
 				method: this.method,
