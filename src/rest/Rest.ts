@@ -59,10 +59,7 @@ export class Rest {
 		const request = new APIRequest(this, path, method, options);
 		const { route } = request;
 		const rateLimitHandler = this.rateLimits.find((handler) =>
-			handler.routes.find(
-				({ method: routeMethod, route: rateLimitRoute }) =>
-					routeMethod === method && rateLimitRoute === route
-			)
+			handler.routes.includes(`${method} ${route}`)
 		);
 
 		this.requests.push(request);
@@ -139,10 +136,8 @@ export class Rest {
 		);
 
 		if (rateLimit) {
-			if (
-				!rateLimit.routes.find((r) => r.method === method && r.route === route)
-			)
-				rateLimit.routes.push({ method, route });
+			if (!rateLimit.routes.includes(`${method} ${route}`))
+				rateLimit.routes.push(`${method} ${route}`);
 			rateLimit.limit = limit;
 			rateLimit.remaining = remaining ?? rateLimit.remaining - 1;
 		} else {
@@ -150,7 +145,7 @@ export class Rest {
 				bucket,
 				limit,
 				remaining: remaining ?? limit,
-				routes: [{ method, route }],
+				routes: [`${method} ${route}`],
 			};
 			this.rateLimits.push(rateLimit);
 		}
