@@ -1,5 +1,5 @@
-import { IncomingHttpHeaders, OutgoingHttpHeaders } from "node:http";
-import { URLSearchParams } from "node:url";
+import { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
+import { URLSearchParams } from "url";
 import APIRequest from "./rest/APIRequest";
 
 /**

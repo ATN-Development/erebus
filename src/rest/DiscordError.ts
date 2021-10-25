@@ -1,4 +1,4 @@
-import { OutgoingHttpHeaders } from "node:http";
+import { OutgoingHttpHeaders } from "http";
 import { Attachment, Json, Path, RequestMethod, Response } from "../types";
 import APIRequest from "./APIRequest";
 import {
@@ -134,7 +134,7 @@ export class DiscordError extends Error {
 			let prop: string | string[] = error.split("\n");
 
 			// Save the "path" of the error
-			prop = prop.at(-1) ?? prop.at(-2)!;
+			prop = prop[prop.length - 1] ?? prop[prop.length - 2]!;
 			// Do this again until all nested objects are parsed
 			Object.entries(v).forEach(
 				([k1, v1], i) =>

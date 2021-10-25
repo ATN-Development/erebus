@@ -1,4 +1,5 @@
 import { AsyncQueue } from "@sapphire/async-queue";
+import { promisify } from "util";
 import { Client } from "../Client";
 import {
 	RateLimitHandler,
@@ -9,8 +10,9 @@ import {
 	RateLimitResponse,
 } from "../types";
 import APIRequest from "./APIRequest";
-import { setTimeout as setPromiseTimeout } from "timers/promises";
 import { DiscordError } from "./DiscordError";
+
+const setPromiseTimeout = promisify(setTimeout);
 
 /**
  * A rest manager for the client
