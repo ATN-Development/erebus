@@ -67,11 +67,6 @@ export class APIRequest {
 	status = RequestStatus.Pending;
 
 	/**
-	 * The user agent added for this request
-	 */
-	userAgent: string | null = null;
-
-	/**
 	 * @param rest - The rest that instantiated this
 	 * @param path - The path to request
 	 * @param method - The method of the request
@@ -84,7 +79,6 @@ export class APIRequest {
 		options: RequestOptions = {}
 	) {
 		const {
-			userAgent,
 			url = RouteBases.api,
 			query = new URLSearchParams(),
 			headers,
@@ -105,13 +99,11 @@ export class APIRequest {
 			...headers,
 			// https://discord.com/developers/docs/reference#user-agent
 			"User-Agent": `DiscordBot (${homepage}, ${version})${
-				userAgent ? ` ${userAgent}` : ""
+				rest.client.userAgent ? ` ${rest.client.userAgent}` : ""
 			}`,
 			// Use a bot token to authenticate the request
 			"Authorization": `Bot ${rest.client.token}`,
 		};
-
-		if (userAgent) this.userAgent = userAgent;
 	}
 
 	/**
