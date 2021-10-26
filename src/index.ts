@@ -1,4 +1,3 @@
 export * from "./Client";
+export * from "./rest/Rest";
 export * from "./Constants";
-export * from "./rest";
-export * from "./types";

@@ -171,5 +171,3 @@ export class DiscordError extends Error {
 		return "code" in errorData;
 	}
 }
-
-export default DiscordError;

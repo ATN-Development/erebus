@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import WebSocket from "ws";
-import Rest from "./rest";
+import { Rest } from "./rest/Rest";
 import { APIGatewayInfo, Routes } from "discord-api-types/v9";
 import { ClientOptions, HeartbeatInfo, Intents } from "./types";
 
@@ -9,27 +9,9 @@ import { ClientOptions, HeartbeatInfo, Intents } from "./types";
  */
 export class Client extends EventEmitter {
 	/**
-	 * Data about an heartbeat
+	 * The websocket of this client
 	 */
-	heartbeatInfo: HeartbeatInfo = {
-		first: true,
-		acknowledged: false,
-	};
-
-	/**
-	 * Intents used by this client
-	 */
-	intents: Intents;
-
-	/**
-	 * Total number of members where the gateway will stop sending offline members in the guild member list
-	 */
-	largeThreshold: number;
-
-	/**
-	 * The rest manager of this client
-	 */
-	rest = new Rest(this);
+	ws?: WebSocket;
 
 	/**
 	 * The token used by this client
@@ -37,31 +19,45 @@ export class Client extends EventEmitter {
 	token: string;
 
 	/**
-	 * The user agent to append to requests to the API
+	 * Total number of members where the gateway will stop sending offline members in the guild member list
 	 */
-	userAgent?: string;
+	largeThreshold: number;
 
 	/**
-	 * The websocket of this client
+	 * Data about an heartbeat
 	 */
-	ws?: WebSocket;
+	heartbeatInfo: HeartbeatInfo;
+
+	/**
+	 * The rest manager of this client
+	 */
+	rest: Rest;
+
+	/**
+	 * Intents used by this client
+	 */
+	intents: Intents;
 
 	/**
 	 * @param options - Options for the client
 	 */
-	constructor({ intents, token, largeThreshold, userAgent }: ClientOptions) {
+	constructor(options: ClientOptions) {
 		super();
-
-		this.intents = intents;
-		this.largeThreshold = largeThreshold ?? 50;
-		this.token = token;
-		this.userAgent = userAgent;
+		this.ws = undefined;
+		this.token = options.token;
+		this.largeThreshold = options.largeThreshold ? options.largeThreshold : 50;
+		this.heartbeatInfo = {
+			first: true,
+			acknowledged: false,
+		};
+		this.rest = new Rest(this);
+		this.intents = options.intents;
 	}
 
 	/**
 	 * Connect this client to the websocket.
 	 */
-	async connect() {
+	async connect(): Promise<void> {
 		this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
 		this.ws.on("open", () => {});
 	}
@@ -79,18 +75,18 @@ export class Client extends EventEmitter {
 	/**
 	 * Send an identify payload
 	 */
-	async identify() {
-		// const payload = {
-		// 	token: this.token,
-		// 	properties: {
-		// 		$os: process.platform,
-		// 		$browser: "erebus",
-		// 		$device: "erebus",
-		// 	},
-		// 	large_threshold: this.largeThreshold,
-		// 	intents: this.intents,
-		// };
+	async identify(): Promise<void> {
+		const payload = {
+			token: this.token,
+			properties: {
+				$os: process.platform,
+				$browser: "erebus",
+				$device: "erebus",
+			},
+			large_threshold: this.largeThreshold,
+			intents: this.intents,
+		};
+
+		this.ws?.send(JSON.stringify(payload));
 	}
 }
-
-export default Client;
