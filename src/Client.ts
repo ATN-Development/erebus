@@ -57,7 +57,7 @@ export class Client extends EventEmitter {
 	/**
 	 * Connect this client to the websocket.
 	 */
-	async connect() {
+	async connect(): Promise<void> {
 		this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
 		this.ws.on("open", () => {});
 	}
@@ -75,16 +75,18 @@ export class Client extends EventEmitter {
 	/**
 	 * Send an identify payload
 	 */
-	async identify() {
-		// const payload = {
-		// 	token: this.token,
-		// 	properties: {
-		// 		$os: process.platform,
-		// 		$browser: "erebus",
-		// 		$device: "erebus",
-		// 	},
-		// 	large_threshold: this.largeThreshold,
-		// 	intents: this.intents,
-		// };
+	async identify(): Promise<void> {
+		const payload = {
+			token: this.token,
+			properties: {
+				$os: process.platform,
+				$browser: "erebus",
+				$device: "erebus",
+			},
+			large_threshold: this.largeThreshold,
+			intents: this.intents,
+		};
+
+		this.ws?.send(JSON.stringify(payload));
 	}
 }
