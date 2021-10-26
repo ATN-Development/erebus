@@ -1,6 +1,6 @@
 import { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import { URLSearchParams } from "url";
-import APIRequest from "./rest/APIRequest";
+import { APIRequest } from "./rest";
 
 /**
  * An attachment to send to the API
@@ -35,6 +35,12 @@ export interface ClientOptions {
 	 * Intents to use for this client
 	 */
 	intents: Intents;
+
+	/**
+	 * An optional user agent to add in the requests to the API
+	 * @see https://discord.com/developers/docs/reference#user-agent
+	 */
+	userAgent?: string;
 }
 
 /**
@@ -144,11 +150,6 @@ export interface RequestOptions {
 	 * The base url for this request
 	 */
 	url?: string;
-
-	/**
-	 * The user agent used for this request
-	 */
-	userAgent?: string;
 
 	/**
 	 * The query of this request

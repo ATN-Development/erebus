@@ -20,7 +20,7 @@
     "test": "tsc && node ."
   },
   "author": "NotReallyEight",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/NotReallyEight/erebus/issues"
   },
