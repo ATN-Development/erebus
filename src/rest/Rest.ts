@@ -24,6 +24,21 @@ export class Rest {
 	client: Client;
 
 	/**
+	 * Number of invalid requests done in the last 10 minutes
+	 */
+	invalidRequests = 0;
+
+	/**
+	 * A queue for the requests
+	 */
+	queue = new AsyncQueue();
+
+	/**
+	 * An array of all the rate limit data received from the API
+	 */
+	rateLimits: RateLimitHandler[] = [];
+
+	/**
 	 * All requests that have been made so far
 	 */
 	requests: APIRequest[] = [];
@@ -32,21 +47,6 @@ export class Rest {
 	 * Number of requests done in the last second
 	 */
 	requestsPerSec = 0;
-
-	/**
-	 * Number of invalid requests done in the last 10 minutes
-	 */
-	invalidRequests = 0;
-
-	/**
-	 * An array of all the rate limit data received from the API
-	 */
-	rateLimits: RateLimitHandler[] = [];
-
-	/**
-	 * A queue for the requests
-	 */
-	queue = new AsyncQueue();
 
 	/**
 	 * @param client - The client that instantiated this
@@ -226,3 +226,5 @@ export class Rest {
 		}
 	}
 }
+
+export default Rest;

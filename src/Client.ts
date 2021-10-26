@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import WebSocket from "ws";
-import { Rest } from "./rest/Rest";
+import Rest from "./rest";
 import { APIGatewayInfo, Routes } from "discord-api-types/v9";
 import { ClientOptions, HeartbeatInfo, Intents } from "./types";
 
@@ -9,29 +9,12 @@ import { ClientOptions, HeartbeatInfo, Intents } from "./types";
  */
 export class Client extends EventEmitter {
 	/**
-	 * The websocket of this client
-	 */
-	ws?: WebSocket;
-
-	/**
-	 * The token used by this client
-	 */
-	token: string;
-
-	/**
-	 * Total number of members where the gateway will stop sending offline members in the guild member list
-	 */
-	largeThreshold: number;
-
-	/**
 	 * Data about an heartbeat
 	 */
-	heartbeatInfo: HeartbeatInfo;
-
-	/**
-	 * The rest manager of this client
-	 */
-	rest: Rest;
+	heartbeatInfo: HeartbeatInfo = {
+		first: true,
+		acknowledged: false,
+	};
 
 	/**
 	 * Intents used by this client
@@ -39,19 +22,40 @@ export class Client extends EventEmitter {
 	intents: Intents;
 
 	/**
+	 * Total number of members where the gateway will stop sending offline members in the guild member list
+	 */
+	largeThreshold: number;
+
+	/**
+	 * The rest manager of this client
+	 */
+	rest = new Rest(this);
+
+	/**
+	 * The token used by this client
+	 */
+	token: string;
+
+	/**
+	 * The user agent to append to requests to the API
+	 */
+	userAgent?: string;
+
+	/**
+	 * The websocket of this client
+	 */
+	ws?: WebSocket;
+
+	/**
 	 * @param options - Options for the client
 	 */
-	constructor(options: ClientOptions) {
+	constructor({ intents, token, largeThreshold, userAgent }: ClientOptions) {
 		super();
-		this.ws = undefined;
-		this.token = options.token;
-		this.largeThreshold = options.largeThreshold ? options.largeThreshold : 50;
-		this.heartbeatInfo = {
-			first: true,
-			acknowledged: false,
-		};
-		this.rest = new Rest(this);
-		this.intents = options.intents;
+
+		this.intents = intents;
+		this.largeThreshold = largeThreshold ?? 50;
+		this.token = token;
+		this.userAgent = userAgent;
 	}
 
 	/**
@@ -90,3 +94,5 @@ export class Client extends EventEmitter {
 		this.ws?.send(JSON.stringify(payload));
 	}
 }
+
+export default Client;
