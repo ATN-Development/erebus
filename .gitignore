@@ -3,3 +3,4 @@ dist/
 .vscode/
 testing/
 .env
+out/
