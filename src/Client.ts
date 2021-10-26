@@ -35,7 +35,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The token used by this client
 	 */
-	token = process.env.DISCORD_TOKEN;
+	token = process.env.DISCORD_CLIENT_TOKEN;
 
 	/**
 	 * The user agent to append to requests to the API
