@@ -1,7 +1,7 @@
-import { OutgoingHttpHeaders } from "http";
-import { Attachment, Json, Path, RequestMethod, Response } from "../types";
-import APIRequest from "./APIRequest";
-import {
+import type { OutgoingHttpHeaders } from "http";
+import type { Attachment, Json, Path, RequestMethod, Response } from "..";
+import type APIRequest from "./APIRequest";
+import type {
 	DiscordError as DiscordAPIError,
 	DiscordErrorData,
 	DiscordErrorFieldInformation,
@@ -134,7 +134,7 @@ export class DiscordError extends Error {
 			let prop: string | string[] = error.split("\n");
 
 			// Save the "path" of the error
-			prop = prop[prop.length - 1] ?? prop[prop.length - 2]!;
+			prop = prop[prop.length - 1]!;
 			// Do this again until all nested objects are parsed
 			Object.entries(v).forEach(
 				([k1, v1], i) =>
@@ -150,17 +150,6 @@ export class DiscordError extends Error {
 	}
 
 	/**
-	 * Check if an error is a group wrapper.
-	 * @param errorData - The error data received
-	 * @returns If the error is a group wrapper
-	 */
-	private static isGroupWrapper(
-		errorData: Exclude<DiscordErrorData, string>
-	): errorData is DiscordErrorGroupWrapper {
-		return "_errors" in errorData;
-	}
-
-	/**
 	 * Check if an error is a field information.
 	 * @param errorData - The error data received
 	 * @returns If the error is a field information
@@ -169,6 +158,17 @@ export class DiscordError extends Error {
 		errorData: Exclude<DiscordErrorData, string>
 	): errorData is DiscordErrorFieldInformation {
 		return "code" in errorData;
+	}
+
+	/**
+	 * Check if an error is a group wrapper.
+	 * @param errorData - The error data received
+	 * @returns If the error is a group wrapper
+	 */
+	private static isGroupWrapper(
+		errorData: Exclude<DiscordErrorData, string>
+	): errorData is DiscordErrorGroupWrapper {
+		return "_errors" in errorData;
 	}
 }
 
