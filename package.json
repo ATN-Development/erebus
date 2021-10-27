@@ -1,41 +1,49 @@
 {
-  "name": "erebus",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "description": "From the darkness to you, bring your Discord bot to a next level.",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/NotReallyEight/erebus.git"
+  "author": "NotReallyEight",
+  "bugs": {
+    "url": "https://github.com/ATN-Development/erebus/issues"
   },
+  "contributors": [
+    "NotReallyEight",
+    "DTrombett"
+  ],
+  "dependencies": {
+    "@sapphire/async-queue": "^1.1.7",
+    "discord-api-types": "^0.24.0",
+    "form-data": "^4.0.0",
+    "tslib": "^2.3.1",
+    "ws": "^8.2.2"
+  },
+  "description": "From the darkness to you, bring your Discord bot to a next level.",
+  "devDependencies": {
+    "@tsconfig/node14": "^1.0.1",
+    "@types/node": "^14.17.31",
+    "@types/ws": "^8.2.0",
+    "typescript": "^4.4.4"
+  },
+  "engines": {
+    "node": ">=14.x"
+  },
+  "homepage": "https://github.com/ATN-Development/erebus#readme",
   "keywords": [
     "discord",
     "erebus",
     "discord-api-wrapper",
     "discord-api"
   ],
-  "engines": {
-    "node": ">=14.18.1"
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "name": "erebus",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ATN-Development/erebus.git"
   },
   "scripts": {
-    "test": "tsc && node ."
+    "test": "tsc --noEmit",
+    "lint": "prettier --write src/**/*.ts",
+    "prepublish": "tsc",
+    "build": "tsc"
   },
-  "author": "NotReallyEight",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/NotReallyEight/erebus/issues"
-  },
-  "homepage": "https://github.com/NotReallyEight/erebus#readme",
-  "dependencies": {
-    "@sapphire/async-queue": "^1.1.7",
-    "@tsconfig/node14": "^1.0.1",
-    "discord-api-types": "^0.24.0",
-    "form-data": "^4.0.0",
-    "tslib": "^2.3.1",
-    "ws": "^8.2.2"
-  },
-  "devDependencies": {
-    "@types/node": "^14.17.31",
-    "@types/ws": "^8.2.0",
-    "typescript": "^4.4.4"
-  }
+  "types": "dist/index.d.ts",
+  "version": "0.0.1"
 }

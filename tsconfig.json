@@ -5,6 +5,7 @@
     "allowUnreachableCode": false,
     "alwaysStrict": true,
     "checkJs": true,
+    "declaration": true,
     "importHelpers": true,
     "moduleResolution": "node",
     "noEmitHelpers": true,
