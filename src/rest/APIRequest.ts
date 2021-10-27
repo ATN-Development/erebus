@@ -1,18 +1,18 @@
 import { RouteBases } from "discord-api-types/v9";
 import FormData from "form-data";
-import { OutgoingHttpHeaders } from "http";
+import type { OutgoingHttpHeaders } from "http";
 import { Agent, request } from "https";
 import { URL, URLSearchParams } from "url";
-import {
+import type {
 	RequestMethod,
 	Path,
 	Attachment,
 	Json,
 	RequestOptions,
-	RequestStatus,
 	Response,
-} from "../types";
-import { Rest } from "./Rest";
+} from "..";
+import { RequestStatus } from "../types";
+import type Rest from "./Rest";
 
 const { homepage, version } = require("../../package.json");
 const agent = new Agent({ keepAlive: true });
@@ -85,6 +85,11 @@ export class APIRequest {
 			attachments = [],
 			body,
 		} = options;
+
+		if (!rest.client.token)
+			throw new TypeError(
+				"No token was provided in the client initialization and process.env.DISCORD_TOKEN wasn't set or the Client#token property was manually removed!"
+			);
 
 		this.method = method;
 		this.path = path;
@@ -167,6 +172,38 @@ export class APIRequest {
 	}
 
 	/**
+	 * Add some attachments to this request
+	 * @param attachments - Attachments to add
+	 * @returns The new request
+	 */
+	addAttachments(...attachments: NonNullable<RequestOptions["attachments"]>) {
+		this.attachments.push(...attachments);
+		return this;
+	}
+
+	/**
+	 * Remove some attachments from this request
+	 * @param attachments - Attachments to remove
+	 * @returns The new request
+	 */
+	removeAttachments(...attachments: string[]) {
+		this.attachments = this.attachments.filter(
+			(att) => !attachments.includes(att.name)
+		);
+		return this;
+	}
+
+	/**
+	 * Edit headers for this request
+	 * @param headers - Headers to add/remove
+	 * @returns The new request
+	 */
+	editHeaders(headers: RequestOptions["headers"]) {
+		this.headers = { ...this.headers, ...headers };
+		return this;
+	}
+
+	/**
 	 * Make the request to the API.
 	 * @param resolve A function to resolve the promise
 	 * @param reject A function to reject the promise
@@ -236,38 +273,6 @@ export class APIRequest {
 		// Send the data, if present
 		if (chunk) req.write(chunk);
 		req.end();
-	}
-
-	/**
-	 * Add some attachments to this request
-	 * @param attachments - Attachments to add
-	 * @returns The new request
-	 */
-	addAttachments(...attachments: NonNullable<RequestOptions["attachments"]>) {
-		this.attachments.push(...attachments);
-		return this;
-	}
-
-	/**
-	 * Remove some attachments from this request
-	 * @param attachments - Attachments to remove
-	 * @returns The new request
-	 */
-	removeAttachments(...attachments: string[]) {
-		this.attachments = this.attachments.filter(
-			(att) => !attachments.includes(att.name)
-		);
-		return this;
-	}
-
-	/**
-	 * Edit headers for this request
-	 * @param headers - Headers to add/remove
-	 * @returns The new request
-	 */
-	editHeaders(headers: RequestOptions["headers"]) {
-		this.headers = { ...this.headers, ...headers };
-		return this;
 	}
 }
 

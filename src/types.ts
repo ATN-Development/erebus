@@ -1,6 +1,6 @@
-import { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
-import { URLSearchParams } from "url";
-import { APIRequest } from "./rest";
+import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
+import type { URLSearchParams } from "url";
+import type { APIRequest } from "./rest";
 
 /**
  * An attachment to send to the API
@@ -23,8 +23,9 @@ export interface Attachment {
 export interface ClientOptions {
 	/**
 	 * The token of this client
+	 * This defaults to `process.env.DISCORD_TOKEN` if none is provided
 	 */
-	token: Token;
+	token?: Token;
 
 	/**
 	 * Total number of members where the gateway will stop sending offline members in the guild member list

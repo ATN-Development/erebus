@@ -1,8 +1,9 @@
 import EventEmitter from "events";
 import WebSocket from "ws";
 import Rest from "./rest";
-import { APIGatewayInfo, Routes } from "discord-api-types/v9";
-import { ClientOptions, HeartbeatInfo, Intents } from "./types";
+import type { APIGatewayInfo } from "discord-api-types/v9";
+import { Routes } from "discord-api-types/v9";
+import type { ClientOptions, HeartbeatInfo, Intents } from ".";
 
 /**
  * A Discord client
@@ -34,7 +35,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The token used by this client
 	 */
-	token: string;
+	token = process.env.DISCORD_CLIENT_TOKEN;
 
 	/**
 	 * The user agent to append to requests to the API

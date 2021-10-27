@@ -1,14 +1,14 @@
 import { AsyncQueue } from "@sapphire/async-queue";
 import { promisify } from "util";
-import { Client } from "../Client";
-import {
+import type { Client } from "..";
+import type {
 	RateLimitHandler,
 	Json,
 	Path,
 	RequestMethod,
 	RequestOptions,
 	RateLimitResponse,
-} from "../types";
+} from "..";
 import APIRequest from "./APIRequest";
 import { DiscordError } from "./DiscordError";
 
@@ -66,11 +66,93 @@ export class Rest {
 	}
 
 	/**
+	 * Make a GET request to the API.
+	 * @param path - The path to request
+	 * @param options - Other options for this request
+	 * @param retry - If the request should be retried in case of a 5xx response
+	 * @template T The return type that should be used by the function
+	 * @returns The JSON data received from the API or null if no data was received
+	 */
+	get<T = Json | null>(
+		path: Path,
+		options?: Omit<RequestOptions, "attachments" | "body">,
+		retry?: boolean
+	): Promise<T> {
+		return this.request(path, "GET", options, retry);
+	}
+
+	/**
+	 * Make a DELETE request to the API.
+	 * @param path - The path to request
+	 * @param options - Other options for this request
+	 * @param retry - If the request should be retried in case of a 5xx response
+	 * @template T The return type that should be used by the function
+	 * @returns The JSON data received from the API or null if no data was received
+	 */
+	delete<T = Json | null>(
+		path: Path,
+		options?: RequestOptions,
+		retry?: boolean
+	): Promise<T> {
+		return this.request(path, "DELETE", options, retry);
+	}
+
+	/**
+	 * Make a PATCH request to the API.
+	 * @param path - The path to request
+	 * @param options - Other options for this request
+	 * @param retry - If the request should be retried in case of a 5xx response
+	 * @template T The return type that should be used by the function
+	 * @returns The JSON data received from the API or null if no data was received
+	 */
+	patch<T = Json | null>(
+		path: Path,
+		options?: RequestOptions,
+		retry?: boolean
+	): Promise<T> {
+		return this.request(path, "PATCH", options, retry);
+	}
+
+	/**
+	 * Make a POST request to the API.
+	 * @param path - The path to request
+	 * @param options - Other options for this request
+	 * @param retry - If the request should be retried in case of a 5xx response
+	 * @template T The return type that should be used by the function
+	 * @returns The JSON data received from the API or null if no data was received
+	 */
+	post<T = Json | null>(
+		path: Path,
+		options?: RequestOptions,
+		retry?: boolean
+	): Promise<T> {
+		return this.request(path, "POST", options, retry);
+	}
+
+	/**
+	 * Make a PUT request to the API.
+	 * @param path - The path to request
+	 * @param options - Other options for this request
+	 * @param retry - If the request should be retried in case of a 5xx response
+	 * @template T The return type that should be used by the function
+	 * @returns The JSON data received from the API or null if no data was received
+	 */
+	put<T = Json | null>(
+		path: Path,
+		options?: RequestOptions,
+		retry?: boolean
+	): Promise<T> {
+		return this.request(path, "PUT", options, retry);
+	}
+
+	/**
 	 * Make a request to the API.
 	 * @param path - The path to request
 	 * @param method - The method of the request
 	 * @param options - Other options for this request
-	 * @returns - The JSON data received from the API or null if no data was received
+	 * @param retry - If the request should be retried in case of a 5xx response
+	 * @template T The return type that should be used by the function
+	 * @returns The JSON data received from the API or null if no data was received
 	 */
 	request<T = Json | null>(
 		path: Path,
@@ -173,7 +255,7 @@ export class Rest {
 	}
 
 	/**
-	 *
+	 * Handle a received ratelimit data with bucket.
 	 * @param bucket - The unique bucket string received from Discord
 	 * @param method - The method used for the request
 	 * @param route - The route of the request
@@ -181,7 +263,7 @@ export class Rest {
 	 * @param reset - When this ratelimit will reset
 	 * @param remaining - How many requests remained
 	 */
-	private handleBucket(
+	handleBucket(
 		bucket: string,
 		method: RequestMethod,
 		route: `/${string}`,
