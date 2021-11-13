@@ -30,7 +30,9 @@
     "@tsconfig/node14": "^1.0.1",
     "discord-api-types": "^0.24.0",
     "form-data": "^4.0.0",
+    "tsdoc": "^0.0.4",
     "tslib": "^2.3.1",
+    "un": "^0.0.0",
     "ws": "^8.2.2"
   },
   "devDependencies": {
