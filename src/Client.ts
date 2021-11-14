@@ -47,7 +47,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The guilds the client is in
 	 */
-	guilds: Map<Snowflake, UnavailableGuild>;
+	guilds = new Map<Snowflake, UnavailableGuild>();
 
 	/**
 	 * Data about an heartbeat
@@ -115,7 +115,6 @@ export class Client extends EventEmitter {
 	constructor({ intents, token, largeThreshold, userAgent }: ClientOptions) {
 		super();
 
-		this.guilds = new Map();
 		this.intents = intents;
 		this.largeThreshold = largeThreshold ?? 50;
 		this.token = token;
@@ -145,17 +144,12 @@ export class Client extends EventEmitter {
 							this._heartbeat();
 						} else if (!this.heartbeatInfo.acknowledged)
 							throw new Error("Received heartbeat before acknowledgement");
-						else if (this.heartbeatInfo.interval) {
-							this._heartbeat();
-							clearInterval(this.heartbeatInfo.interval);
-							setInterval(() => {
-								this._sendHeartbeat();
-							}, this.heartbeatInfo.intervalTime);
-						} else throw new Error("Received heartbeat before heartbeat");
+						else if (this.heartbeatInfo.interval) this._heartbeat();
+						else throw new Error("Received heartbeat before heartbeat");
 						break;
 
 					case GatewayOpcodes.Reconnect:
-						this.ws?.close(5000, "Reconnecting");
+						this.ws!.close(5000, "Reconnecting");
 						void this.connect();
 						break;
 
@@ -230,6 +224,7 @@ export class Client extends EventEmitter {
 	 * Create an interval for the heartbeat.
 	 */
 	private _heartbeat() {
+		if (this.heartbeatInfo.interval) clearInterval(this.heartbeatInfo.interval);
 		this.heartbeatInfo.interval = setInterval(() => {
 			this._sendHeartbeat();
 		}, this.heartbeatInfo.intervalTime);
@@ -250,12 +245,8 @@ export class Client extends EventEmitter {
 			intents: this.intents,
 		};
 
-		this.ws?.send(
-			JSON.stringify({
-				op: 2,
-				d: payload,
-			})
-		);
+		if (!this.ws) throw new Error("No websocket");
+		this.ws.send(JSON.stringify({ op: GatewayOpcodes.Identify, d: payload }));
 	}
 
 	/**
@@ -265,14 +256,15 @@ export class Client extends EventEmitter {
 		if (this.token == null || this.sessionId == null)
 			throw new Error("Cannot resume without a token and session ID");
 		const resumePayload: GatewayResume = {
-			op: 6,
+			op: GatewayOpcodes.Resume,
 			d: {
 				token: this.token,
 				session_id: this.sessionId,
 				seq: this.seq,
 			},
 		};
-		this.ws?.send(JSON.stringify(resumePayload));
+		if (this.ws) this.ws.send(JSON.stringify(resumePayload));
+		else throw new Error("Cannot resume without a WebSocket");
 	}
 
 	/**
