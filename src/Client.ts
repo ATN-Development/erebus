@@ -217,6 +217,10 @@ export class Client extends EventEmitter {
 				this.application = payload.d.application;
 				this.emit("ready", this);
 				break;
+
+			case GatewayDispatchEvents.Resumed:
+				this.emit("resumed");
+				break;
 			default:
 				break;
 		}

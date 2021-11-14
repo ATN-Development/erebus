@@ -23,6 +23,7 @@ export interface Attachment {
  */
 export interface ClientEvents {
 	ready: [client: Client];
+	resumed: [];
 }
 
 /**
