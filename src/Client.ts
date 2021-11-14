@@ -129,7 +129,7 @@ export class Client extends EventEmitter {
 								this._identify();
 							}, 5000);
 						} else {
-
+							this._resume();
 						}
 						this.status = "reconnecting";
 						break;
@@ -141,18 +141,7 @@ export class Client extends EventEmitter {
 		} else {
 			this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
 			this.ws.on("open", () => {
-				if (!this.token || !this.sessionId) {
-					throw new Error("Cannot resume without a token and session ID");
-				}
-				const resumePayload: GatewayResume = {
-					op: 6,
-					d: {
-						token: this.token,
-						session_id: this.sessionId,
-						seq: this.seq,
-					},
-				};
-				this.ws?.send(JSON.stringify(resumePayload));
+				this._resume();
 			});
 		}
 	}
@@ -167,6 +156,15 @@ export class Client extends EventEmitter {
 			"GET"
 		);
 		return info.url;
+	}
+
+	/**
+	 * Creates an interval for the heartbeat.
+	 */
+	private async _heartbeat(): Promise<void> {
+		this.heartbeatInfo.interval = setInterval(() => {
+			this._sendHeartbeat();
+		}, this.heartbeatInfo.intervalTime);
 	}
 
 	/**
@@ -192,12 +190,27 @@ export class Client extends EventEmitter {
 		);
 	}
 
-	private async _heartbeat(): Promise<void> {
-		this.heartbeatInfo.interval = setInterval(() => {
-			this._sendHeartbeat();
-		}, this.heartbeatInfo.intervalTime);
+	/**
+	 * Send a resume payload
+	 */
+	private async _resume(): Promise<void> {
+		if (!this.token || !this.sessionId) {
+			throw new Error("Cannot resume without a token and session ID");
+		}
+		const resumePayload: GatewayResume = {
+			op: 6,
+			d: {
+				token: this.token,
+				session_id: this.sessionId,
+				seq: this.seq,
+			},
+		};
+		this.ws?.send(JSON.stringify(resumePayload));
 	}
 
+	/**
+	 * Send a heartbeat to the gateway
+	 */
 	private async _sendHeartbeat(): Promise<void> {
 		const heartbeat = {
 			op: 1,
