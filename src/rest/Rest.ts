@@ -1,13 +1,13 @@
 import { AsyncQueue } from "@sapphire/async-queue";
 import { promisify } from "util";
-import type { Client } from "..";
 import type {
-	RateLimitHandler,
+	Client,
 	Json,
 	Path,
+	RateLimitHandler,
+	RateLimitResponse,
 	RequestMethod,
 	RequestOptions,
-	RateLimitResponse,
 } from "..";
 import APIRequest from "./APIRequest";
 import { DiscordError } from "./DiscordError";
@@ -27,6 +27,11 @@ export class Rest {
 	 * Number of invalid requests done in the last 10 minutes
 	 */
 	invalidRequests = 0;
+
+	/**
+	 * When the invalid requests were last resetted
+	 */
+	invalidRequestsResettedAt = Date.now();
 
 	/**
 	 * A queue for the requests
@@ -49,6 +54,11 @@ export class Rest {
 	requestsPerSec = 0;
 
 	/**
+	 * When the requests per second were last resetted
+	 */
+	requestPerSecResettedAt = Date.now();
+
+	/**
 	 * @param client - The client that instantiated this
 	 */
 	constructor(client: Client) {
@@ -57,11 +67,13 @@ export class Rest {
 		// Reset the request per second every second
 		setInterval(() => {
 			this.requestsPerSec = 0;
+			this.requestPerSecResettedAt = Date.now();
 		}, 1_000).unref();
 
 		// Resey invalid requests every 10 minutes
 		setInterval(() => {
 			this.invalidRequests = 0;
+			this.invalidRequestsResettedAt = Date.now();
 		}, 600_000).unref();
 	}
 
@@ -176,19 +188,11 @@ export class Rest {
 
 		const request = new APIRequest(this, path, method, options);
 		const { route } = request;
-		// Check if there is already data about ratelimits for this endpoint
-		const rateLimitHandler = this.rateLimits.find((handler) =>
-			handler.routes.includes(`${method} ${route}`)
-		);
 
 		this.requests.push(request);
 
 		// If we already passed the limit wait until all parameters are ok
-		while (
-			this.requestsPerSec >= 50 ||
-			this.invalidRequests >= 10_000 ||
-			(rateLimitHandler && rateLimitHandler.remaining <= 0)
-		);
+		await this.wait({ method, route });
 		this.requestsPerSec++;
 
 		let data;
@@ -201,13 +205,13 @@ export class Rest {
 		// Check if it's an invalid request
 		if ([401, 403, 429].includes(res.statusCode)) this.invalidRequests++;
 		if (res.statusCode === 429) {
-			const data = JSON.parse(res.data!) as RateLimitResponse;
+			data = JSON.parse(res.data!) as RateLimitResponse;
 
 			// If we encountered a ratelimit, use the retryAfter data
 			await setPromiseTimeout(data.retry_after * 1000);
 			this.queue.shift();
-			if (!data.global) {
-				if (bucket && limit)
+			if (!data.global)
+				if (bucket != null && limit)
 					this.handleBucket(
 						bucket,
 						method,
@@ -219,11 +223,11 @@ export class Rest {
 							) *
 								1000
 					);
-			}
-			return this.request(path, method as any, options);
+
+			return this.request(path, method as "DELETE", options);
 		}
 
-		if (bucket && limit)
+		if (bucket != null && limit)
 			this.handleBucket(
 				bucket,
 				method,
@@ -236,7 +240,7 @@ export class Rest {
 			// If the request is ok parse the data received
 			data =
 				res.headers["content-type"] === "application/json"
-					? JSON.parse(res.data!)
+					? (JSON.parse(res.data!) as unknown)
 					: res.data;
 		else if (res.statusCode >= 300 && res.statusCode < 400)
 			// In this case we have no data
@@ -244,7 +248,7 @@ export class Rest {
 		else if (res.statusCode >= 500 && retry) {
 			// If there's a server error retry just one time
 			this.queue.shift();
-			return this.request(path, method as any, options, false);
+			return this.request(path, method as "DELETE", options, false);
 		}
 
 		this.queue.shift();
@@ -296,16 +300,43 @@ export class Rest {
 		}
 
 		// Handle the reset of this bucket if it wasn't already
-		if (!rateLimit.reset && reset) {
+		if (rateLimit.reset == null && reset != null) {
 			rateLimit.reset = reset;
 			setTimeout(
-				(rateLimit) => {
-					rateLimit.remaining = rateLimit.limit;
+				(rLimit: RateLimitHandler) => {
+					rLimit.remaining = rLimit.limit;
 				},
 				reset - Date.now(),
 				rateLimit
 			).unref();
 		}
+	}
+
+	/**
+	 * Wait until all ratelimits are ok.
+	 */
+	wait({ method, route }: { method: RequestMethod; route: `/${string}` }) {
+		const promises: Promise<void>[] = [];
+		const requestsPerSecWillResetIn =
+			this.requestPerSecResettedAt + 1_000 - Date.now();
+		const invalidRequestsWillResetIn =
+			this.invalidRequestsResettedAt + 600_000 - Date.now();
+		const rHandler = this.rateLimits.find((handler) =>
+			handler.routes.includes(`${method} ${route}`)
+		);
+
+		if (this.requestsPerSec >= 50 && requestsPerSecWillResetIn > 0)
+			promises.push(setPromiseTimeout(requestsPerSecWillResetIn));
+		if (this.invalidRequests >= 10_000 && invalidRequestsWillResetIn > 0)
+			promises.push(setPromiseTimeout(invalidRequestsWillResetIn));
+		if (rHandler?.reset != null) {
+			const handlerWillResetIn = rHandler.reset * 1_000 - Date.now();
+
+			if (handlerWillResetIn > 0 && rHandler.remaining <= 0)
+				promises.push(setPromiseTimeout(handlerWillResetIn));
+		}
+
+		return Promise.all(promises);
 	}
 }
 

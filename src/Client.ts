@@ -1,15 +1,17 @@
 import EventEmitter from "events";
 import WebSocket from "ws";
 import Rest from "./rest";
-import {
+import type {
 	APIGatewayInfo,
-	GatewayDispatchEvents,
 	GatewayDispatchPayload,
-	Routes,
 	GatewayReceivePayload,
-	GatewayOpcodes,
 	GatewayResume,
 	APIUser,
+} from "discord-api-types/v9";
+import {
+	GatewayDispatchEvents,
+	Routes,
+	GatewayOpcodes,
 } from "discord-api-types/v9";
 import type { ClientOptions, AdvancedHeartbeatInfo, Intents } from ".";
 import User from "./structures/User";
@@ -111,8 +113,8 @@ export class Client extends EventEmitter {
 			this.ws.on("open", () => {
 				this._identify();
 			});
-			this.ws.on("message", async (data: Buffer) => {
-				let payload: GatewayReceivePayload = JSON.parse(data.toString());
+			this.ws.on("message", (data: Buffer) => {
+				const payload = JSON.parse(data.toString()) as GatewayReceivePayload;
 				switch (payload.op) {
 					case GatewayOpcodes.Dispatch:
 						this._handleEvent(payload);
@@ -123,33 +125,29 @@ export class Client extends EventEmitter {
 							this.heartbeatInfo.acknowledged = true;
 							this.heartbeatInfo.first = false;
 							this._heartbeat();
-						} else if (!this.heartbeatInfo.acknowledged) {
+						} else if (!this.heartbeatInfo.acknowledged)
 							throw new Error("Received heartbeat before acknowledgement");
-						} else if (this.heartbeatInfo.interval) {
+						else if (this.heartbeatInfo.interval) {
 							this._heartbeat();
 							clearInterval(this.heartbeatInfo.interval);
 							setInterval(() => {
 								this._sendHeartbeat();
 							}, this.heartbeatInfo.intervalTime);
-						} else {
-							throw new Error("Received heartbeat before heartbeat");
-						}
+						} else throw new Error("Received heartbeat before heartbeat");
 						break;
 
 					case GatewayOpcodes.Reconnect:
 						this.ws?.close(5000, "Reconnecting");
-						this.connect();
+						void this.connect();
 						break;
 
 					case GatewayOpcodes.InvalidSession:
 						this.sessionId = undefined;
-						if (this.status === "resuming") {
+						if (this.status === "resuming")
 							setTimeout(() => {
 								this._identify();
 							}, 5000);
-						} else {
-							this._resume();
-						}
+						else this._resume();
 						this.status = "reconnecting";
 						break;
 
@@ -161,12 +159,14 @@ export class Client extends EventEmitter {
 					case GatewayOpcodes.HeartbeatAck:
 						this.heartbeatInfo.acknowledged = true;
 						break;
+					default:
+						break;
 				}
 				this.status = "connected";
 			});
-		} else if (this.status === "connected") {
+		} else if (this.status === "connected")
 			throw new Error("Already connected");
-		} else {
+		else {
 			this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
 			this.ws.on("open", () => {
 				this._resume();
@@ -189,17 +189,15 @@ export class Client extends EventEmitter {
 	/**
 	 * Handle an event from the WebSocket
 	 */
-	private async _handleEvent(payload: GatewayDispatchPayload): Promise<void> {
+	private _handleEvent(payload: GatewayDispatchPayload) {
 		switch (payload.t) {
 			case GatewayDispatchEvents.Ready:
 				this.user = new User(payload.d.user, this);
-				for (let i = 0; i < payload.d.guilds.length; i++) {
-					this.guilds.set(
-						payload.d.guilds[i].id,
-						new UnavailableGuild(payload.d.guilds[i], this)
-					);
-				}
+				for (const guild of payload.d.guilds)
+					this.guilds.set(guild.id, new UnavailableGuild(guild, this));
 				this.emit("ready");
+				break;
+			default:
 				break;
 		}
 	}
@@ -207,7 +205,7 @@ export class Client extends EventEmitter {
 	/**
 	 * Create an interval for the heartbeat.
 	 */
-	private async _heartbeat(): Promise<void> {
+	private _heartbeat() {
 		this.heartbeatInfo.interval = setInterval(() => {
 			this._sendHeartbeat();
 		}, this.heartbeatInfo.intervalTime);
@@ -216,7 +214,7 @@ export class Client extends EventEmitter {
 	/**
 	 * Send an identify payload
 	 */
-	private async _identify(): Promise<void> {
+	private _identify() {
 		const payload = {
 			token: this.token,
 			properties: {
@@ -239,10 +237,9 @@ export class Client extends EventEmitter {
 	/**
 	 * Send a resume payload
 	 */
-	private async _resume(): Promise<void> {
-		if (!this.token || !this.sessionId) {
+	private _resume() {
+		if (this.token == null || this.sessionId == null)
 			throw new Error("Cannot resume without a token and session ID");
-		}
 		const resumePayload: GatewayResume = {
 			op: 6,
 			d: {
@@ -257,7 +254,7 @@ export class Client extends EventEmitter {
 	/**
 	 * Send a heartbeat to the gateway
 	 */
-	private async _sendHeartbeat(): Promise<void> {
+	private _sendHeartbeat() {
 		const heartbeat = {
 			op: 1,
 			d: this.seq ? this.seq : null,

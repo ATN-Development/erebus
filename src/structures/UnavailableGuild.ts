@@ -1,6 +1,6 @@
 import Base from "./Base";
-import { APIUnavailableGuild } from "discord-api-types/payloads/v9";
-import { Client } from "../Client";
+import type { APIUnavailableGuild } from "discord-api-types/payloads/v9";
+import type { Client } from "../Client";
 
 /**
  * An unavailable guild

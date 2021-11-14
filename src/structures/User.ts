@@ -1,10 +1,10 @@
-import {
+import type {
 	APIUser,
 	Snowflake,
 	UserFlags,
 	UserPremiumType,
 } from "discord-api-types/v9";
-import { Client } from "../Client";
+import type { Client } from "../Client";
 import Base from "./Base";
 
 /**
@@ -112,18 +112,18 @@ export class User extends Base {
 	public update(data: APIUser): void {
 		if (data.username) this.username = data.username;
 		if (data.discriminator) this.discriminator = data.discriminator;
-		if (data.avatar) this.avatar = data.avatar;
-		if (data.bot) this.bot = data.bot;
-		if (data.system) this.system = data.system;
-		if (data.mfa_enabled) this.mfaEnabled = data.mfa_enabled;
-		if (data.banner) this.banner = data.banner;
-		if (data.accent_color) this.accentColor = data.accent_color;
-		if (data.locale) this.locale = data.locale;
-		if (data.verified) this.verified = data.verified;
-		if (data.email) this.email = data.email;
-		if (data.flags) this.flags = data.flags;
-		if (data.premium_type) this.premiumType = data.premium_type;
-		if (data.public_flags) this.publicFlags = data.public_flags;
+		if (data.avatar != null) this.avatar = data.avatar;
+		if (data.bot != null) this.bot = data.bot;
+		if (data.system != null) this.system = data.system;
+		if (data.mfa_enabled != null) this.mfaEnabled = data.mfa_enabled;
+		if (data.banner != null) this.banner = data.banner;
+		if (data.accent_color != null) this.accentColor = data.accent_color;
+		if (data.locale != null) this.locale = data.locale;
+		if (data.verified != null) this.verified = data.verified;
+		if (data.email != null) this.email = data.email;
+		if (data.flags != null) this.flags = data.flags;
+		if (data.premium_type != null) this.premiumType = data.premium_type;
+		if (data.public_flags != null) this.publicFlags = data.public_flags;
 	}
 }
 
