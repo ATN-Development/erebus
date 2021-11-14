@@ -2,8 +2,8 @@ import type Client from "../Client";
 import type {
 	APIChannel,
 	Snowflake,
-} from "../../node_modules/discord-api-types/v9";
-import { Channel } from "./Channel";
+} from "discord-api-types/v9";
+import Channel from "./Channel";
 import User from "./User";
 
 export class PrivateChannel extends Channel {
@@ -22,12 +22,12 @@ export class PrivateChannel extends Channel {
 	 */
 	recipients?: User[];
 
-	constructor(payload: APIChannel, client: Client) {
+	constructor(client: Client, payload: APIChannel) {
 		super(payload, client);
 		this.client = client;
 		this.lastMessageId = payload.last_message_id;
 		this.recipients = payload.recipients?.map(
-			(recipient) => new User(recipient, client)
+			(recipient) => new User(client, recipient)
 		);
 	}
 }
