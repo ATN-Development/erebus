@@ -1,4 +1,9 @@
-import type { APIApplication } from "discord-api-types/v9";
+import type {
+	APIApplication,
+	APIChannel,
+	ChannelType,
+	Snowflake,
+} from "discord-api-types/v9";
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import type { URLSearchParams } from "url";
 import type { Client, APIRequest } from ".";
@@ -249,3 +254,30 @@ export interface AdvancedHeartbeatInfo extends HeartbeatInfo {
  * Partial Application object sent by the server during Ready event
  */
 export type PartialAPIApplication = Pick<APIApplication, "flags" | "id">;
+
+export interface Overwrite {
+	id: Snowflake;
+	type: 0 | 1;
+	allow: string;
+	deny: string;
+}
+
+export interface APIGuildChannel extends APIChannel {
+	type:
+		| ChannelType.GuildCategory
+		| ChannelType.GuildNews
+		| ChannelType.GuildNewsThread
+		| ChannelType.GuildPrivateThread
+		| ChannelType.GuildPublicThread
+		| ChannelType.GuildStageVoice
+		| ChannelType.GuildStore
+		| ChannelType.GuildText
+		| ChannelType.GuildVoice;
+	guild_id: Snowflake
+	position: number
+	permission_overwrites: Overwrite[]
+	name: string
+	topic: string | null | undefined
+	nsfw: boolean
+	parent_id: Snowflake | null | undefined
+}

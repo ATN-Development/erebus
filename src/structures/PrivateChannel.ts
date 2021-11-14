@@ -23,7 +23,7 @@ export class PrivateChannel extends Channel {
 	recipients?: User[];
 
 	constructor(client: Client, payload: APIChannel) {
-		super(payload, client);
+		super(client, payload);
 		this.client = client;
 		this.lastMessageId = payload.last_message_id;
 		this.recipients = payload.recipients?.map(

@@ -22,7 +22,7 @@ export class Channel {
    /**
     * @param payload - The payload of the channel
     */
-   constructor(payload: APIChannel, client: Client) {
+   constructor(client: Client, payload: APIChannel) {
      this.id = payload.id;
      this.type = payload.type;
      this.client = client;
