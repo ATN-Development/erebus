@@ -23,7 +23,7 @@ import User from "./structures/User";
 import UnavailableGuild from "./structures/UnavailableGuild";
 
 export interface Client extends EventEmitter {
-	on(event: "ready", listener: () => void): this;
+	on(event: "ready" | "resume", listener: () => void): this;
 }
 
 /**
@@ -208,6 +208,10 @@ export class Client extends EventEmitter {
 				this.sessionId = payload.d.session_id;
 				this.application = payload.d.application;
 				this.emit("ready");
+				break;
+
+			case GatewayDispatchEvents.Resumed:
+				this.emit("resume");
 				break;
 			default:
 				break;
