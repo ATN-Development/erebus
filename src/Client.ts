@@ -10,7 +10,7 @@ import {
 	GatewayOpcodes,
 	GatewayResume,
 } from "discord-api-types/v9";
-import type { ClientOptions, AdvancedHeartbeatInfo, Intents } from "./types";
+import type { ClientOptions, AdvancedHeartbeatInfo, Intents } from ".";
 
 /**
  * A Discord client
