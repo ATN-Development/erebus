@@ -44,7 +44,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The last sequence number received from the WebSocket server
 	 */
-	seq: number = 0;
+	seq = 0;
 
 	/**
 	 * The session ID of this client
