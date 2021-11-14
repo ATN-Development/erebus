@@ -31,3 +31,5 @@ export class PrivateChannel extends Channel {
 		);
 	}
 }
+
+export default PrivateChannel;
