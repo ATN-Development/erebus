@@ -1,0 +1,31 @@
+import Base from "./Base";
+import { APIUnavailableGuild } from "discord-api-types/payloads/v9";
+import { Client } from "../Client";
+
+/**
+ * An unavailable guild
+ */
+export class UnavailableGuild extends Base {
+	/**
+	 * The ID of the guild
+	 */
+	id: string;
+
+	/**
+	 * Whether the guild is unavailable or not
+	 */
+	unavailable: boolean;
+
+	/**
+	 *
+	 * @param payload - The payload for the unavailable guild
+	 * @param client - The client that instantiated this class
+	 */
+	constructor(payload: APIUnavailableGuild, client: Client) {
+		super(client);
+		this.id = payload.id;
+		this.unavailable = payload.unavailable;
+	}
+}
+
+export default UnavailableGuild;

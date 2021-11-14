@@ -9,13 +9,25 @@ import {
 	GatewayReceivePayload,
 	GatewayOpcodes,
 	GatewayResume,
+	APIUser,
 } from "discord-api-types/v9";
 import type { ClientOptions, AdvancedHeartbeatInfo, Intents } from ".";
+import User from "./structures/User";
+import UnavailableGuild from "./structures/UnavailableGuild";
+
+export interface Client extends EventEmitter {
+	on(event: "ready", listener: () => void): this;
+}
 
 /**
  * A Discord client
  */
 export class Client extends EventEmitter {
+	/**
+	 * The guilds the client is in
+	 */
+	guilds: Map<string, UnavailableGuild>;
+
 	/**
 	 * Data about an heartbeat
 	 */
@@ -63,6 +75,11 @@ export class Client extends EventEmitter {
 	token = process.env.DISCORD_CLIENT_TOKEN;
 
 	/**
+	 * The client user
+	 */
+	user?: APIUser;
+
+	/**
 	 * The user agent to append to requests to the API
 	 */
 	userAgent?: string;
@@ -78,6 +95,7 @@ export class Client extends EventEmitter {
 	constructor({ intents, token, largeThreshold, userAgent }: ClientOptions) {
 		super();
 
+		this.guilds = new Map();
 		this.intents = intents;
 		this.largeThreshold = largeThreshold ?? 50;
 		this.token = token;
@@ -94,10 +112,10 @@ export class Client extends EventEmitter {
 				this._identify();
 			});
 			this.ws.on("message", async (data: Buffer) => {
-				console.log(JSON.parse(data.toString()));
 				let payload: GatewayReceivePayload = JSON.parse(data.toString());
 				switch (payload.op) {
 					case GatewayOpcodes.Dispatch:
+						this._handleEvent(payload);
 						break;
 
 					case GatewayOpcodes.Heartbeat:
@@ -174,6 +192,15 @@ export class Client extends EventEmitter {
 	private async _handleEvent(payload: GatewayDispatchPayload): Promise<void> {
 		switch (payload.t) {
 			case GatewayDispatchEvents.Ready:
+				this.user = new User(payload.d.user, this);
+				for (let i = 0; i < payload.d.guilds.length; i++) {
+					this.guilds.set(
+						payload.d.guilds[i].id,
+						new UnavailableGuild(payload.d.guilds[i], this)
+					);
+				}
+				this.emit("ready");
+				break;
 		}
 	}
 
