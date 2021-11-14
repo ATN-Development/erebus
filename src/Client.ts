@@ -1,29 +1,38 @@
-import EventEmitter from "events";
-import WebSocket from "ws";
-import Rest from "./rest";
 import type {
 	APIGatewayInfo,
+	APIUser,
 	GatewayDispatchPayload,
 	GatewayReceivePayload,
 	GatewayResume,
-	APIUser,
+	Snowflake,
 } from "discord-api-types/v9";
 import {
 	GatewayDispatchEvents,
-	Routes,
 	GatewayOpcodes,
+	Routes,
 } from "discord-api-types/v9";
+import EventEmitter from "events";
+import WebSocket from "ws";
 import type {
-	ClientOptions,
 	AdvancedHeartbeatInfo,
+	ClientEvents,
+	ClientOptions,
 	Intents,
 	PartialAPIApplication,
 } from ".";
-import User from "./structures/User";
-import UnavailableGuild from "./structures/UnavailableGuild";
+import { ClientStatus } from "./types";
+import Rest from "./rest";
+import { UnavailableGuild, User } from "./structures";
 
 export interface Client extends EventEmitter {
-	on(event: "ready", listener: () => void): this;
+	on<T extends keyof ClientEvents>(
+		event: T,
+		listener: (...args: ClientEvents[T]) => void
+	): this;
+	emit<T extends keyof ClientEvents>(
+		event: T,
+		...args: ClientEvents[T]
+	): boolean;
 }
 
 /**
@@ -38,7 +47,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The guilds the client is in
 	 */
-	guilds: Map<string, UnavailableGuild>;
+	guilds: Map<Snowflake, UnavailableGuild>;
 
 	/**
 	 * Data about an heartbeat
@@ -78,8 +87,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The status of the connection of this client
 	 */
-	status: "connected" | "disconnected" | "reconnecting" | "resuming" =
-		"disconnected";
+	status = ClientStatus.disconnected;
 
 	/**
 	 * The token used by this client
@@ -118,7 +126,7 @@ export class Client extends EventEmitter {
 	 * Connect this client to the websocket.
 	 */
 	async connect(): Promise<void> {
-		if (this.status === "disconnected") {
+		if (this.status === ClientStatus.disconnected) {
 			this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
 			this.ws.on("open", () => {
 				this._identify();
@@ -153,12 +161,12 @@ export class Client extends EventEmitter {
 
 					case GatewayOpcodes.InvalidSession:
 						this.sessionId = undefined;
-						if (this.status === "resuming")
+						if (this.status === ClientStatus.resuming)
 							setTimeout(() => {
 								this._identify();
 							}, 5000);
 						else this._resume();
-						this.status = "reconnecting";
+						this.status = ClientStatus.resuming;
 						break;
 
 					case GatewayOpcodes.Hello:
@@ -172,9 +180,9 @@ export class Client extends EventEmitter {
 					default:
 						break;
 				}
-				this.status = "connected";
+				this.status = ClientStatus.connected;
 			});
-		} else if (this.status === "connected")
+		} else if (this.status === ClientStatus.connected)
 			throw new Error("Already connected");
 		else {
 			this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
@@ -202,12 +210,12 @@ export class Client extends EventEmitter {
 	private _handleEvent(payload: GatewayDispatchPayload) {
 		switch (payload.t) {
 			case GatewayDispatchEvents.Ready:
-				this.user = new User(payload.d.user, this);
+				this.user = new User(this, payload.d.user);
 				for (const guild of payload.d.guilds)
-					this.guilds.set(guild.id, new UnavailableGuild(guild, this));
+					this.guilds.set(guild.id, new UnavailableGuild(this, guild));
 				this.sessionId = payload.d.session_id;
 				this.application = payload.d.application;
-				this.emit("ready");
+				this.emit("ready", this);
 				break;
 			default:
 				break;

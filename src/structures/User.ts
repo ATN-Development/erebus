@@ -10,7 +10,7 @@ import Base from "./Base";
 /**
  * A Discord user
  */
-export class User extends Base {
+export class User extends Base<APIUser> {
 	/**
 	 * Id of the user
 	 */
@@ -87,11 +87,12 @@ export class User extends Base {
 	publicFlags?: UserFlags;
 
 	/**
-	 * @param {APIUser} payload - The payload for the user
-	 * @param {Client} client - The client that instantiated this class
+	 * @param payload - The payload for the user
+	 * @param client - The client that instantiated this class
 	 */
-	constructor(payload: APIUser, client: Client) {
+	constructor(client: Client, payload: APIUser) {
 		super(client);
+
 		this.id = payload.id;
 		this.username = payload.username;
 		this.discriminator = payload.discriminator;
@@ -109,9 +110,9 @@ export class User extends Base {
 		this.publicFlags = payload.public_flags;
 	}
 
-	public update(data: APIUser): void {
-		if (data.username) this.username = data.username;
-		if (data.discriminator) this.discriminator = data.discriminator;
+	public update(data: Partial<APIUser>) {
+		if (data.username != null) this.username = data.username;
+		if (data.discriminator != null) this.discriminator = data.discriminator;
 		if (data.avatar != null) this.avatar = data.avatar;
 		if (data.bot != null) this.bot = data.bot;
 		if (data.system != null) this.system = data.system;
@@ -124,6 +125,8 @@ export class User extends Base {
 		if (data.flags != null) this.flags = data.flags;
 		if (data.premium_type != null) this.premiumType = data.premium_type;
 		if (data.public_flags != null) this.publicFlags = data.public_flags;
+
+		return this;
 	}
 }
 

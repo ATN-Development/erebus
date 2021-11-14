@@ -1,8 +1,7 @@
+import type { APIApplication } from "discord-api-types/v9";
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import type { URLSearchParams } from "url";
-import type { APIRequest } from "./rest";
-import type { Snowflake } from "discord-api-types/globals";
-import type { ApplicationFlags } from "discord-api-types/v9";
+import type { Client, APIRequest } from ".";
 
 /**
  * An attachment to send to the API
@@ -17,6 +16,13 @@ export interface Attachment {
 	 * The data for this buffer
 	 */
 	data: Buffer;
+}
+
+/**
+ * Events emitted by the client
+ */
+export interface ClientEvents {
+	ready: [client: Client];
 }
 
 /**
@@ -44,6 +50,16 @@ export interface ClientOptions {
 	 * @see https://discord.com/developers/docs/reference#user-agent
 	 */
 	userAgent?: string;
+}
+
+/**
+ * The state of the client
+ */
+export enum ClientStatus {
+	disconnected,
+	connected,
+	reconnecting,
+	resuming,
 }
 
 /**
@@ -231,7 +247,4 @@ export interface AdvancedHeartbeatInfo extends HeartbeatInfo {
 /**
  * Partial Application object sent by the server during Ready event
  */
-export interface PartialAPIApplication {
-	id: Snowflake;
-	flags: ApplicationFlags;
-}
+export type PartialAPIApplication = Pick<APIApplication, "flags" | "id">;

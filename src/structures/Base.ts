@@ -3,7 +3,7 @@ import type { Client } from "../Client";
 /**
  * The base class for all structures
  */
-export class Base {
+export class Base<T> {
 	/**
 	 * The client that instantiated this structure
 	 */
@@ -14,6 +14,13 @@ export class Base {
 	 */
 	constructor(client: Client) {
 		this.client = client;
+	}
+
+	/**
+	 * Updates this structure with new data
+	 */
+	update(_data: Partial<T>): this {
+		return this;
 	}
 }
 

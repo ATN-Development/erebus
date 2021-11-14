@@ -1,11 +1,11 @@
 import Base from "./Base";
-import type { APIUnavailableGuild } from "discord-api-types/payloads/v9";
+import type { APIUnavailableGuild } from "discord-api-types/v9";
 import type { Client } from "../Client";
 
 /**
  * An unavailable guild
  */
-export class UnavailableGuild extends Base {
+export class UnavailableGuild extends Base<APIUnavailableGuild> {
 	/**
 	 * The ID of the guild
 	 */
@@ -21,8 +21,9 @@ export class UnavailableGuild extends Base {
 	 * @param payload - The payload for the unavailable guild
 	 * @param client - The client that instantiated this class
 	 */
-	constructor(payload: APIUnavailableGuild, client: Client) {
+	constructor(client: Client, payload: APIUnavailableGuild) {
 		super(client);
+
 		this.id = payload.id;
 		this.unavailable = payload.unavailable;
 	}
