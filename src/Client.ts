@@ -1,19 +1,16 @@
 import EventEmitter from "events";
 import WebSocket from "ws";
 import Rest from "./rest";
-import type { APIGatewayInfo } from "discord-api-types/v9";
 import {
+	APIGatewayInfo,
+	GatewayDispatchEvents,
+	GatewayDispatchPayload,
 	Routes,
 	GatewayReceivePayload,
 	GatewayOpcodes,
 	GatewayResume,
 } from "discord-api-types/v9";
-import { ClientOptions, HeartbeatInfo, Intents } from ".";
-
-interface AdvancedHeartbeatInfo extends HeartbeatInfo {
-	intervalTime: number;
-	interval: NodeJS.Timeout | null;
-}
+import type { ClientOptions, AdvancedHeartbeatInfo, Intents } from "./types";
 
 /**
  * A Discord client
@@ -97,8 +94,12 @@ export class Client extends EventEmitter {
 				this._identify();
 			});
 			this.ws.on("message", async (data: Buffer) => {
+				console.log(JSON.parse(data.toString()));
 				let payload: GatewayReceivePayload = JSON.parse(data.toString());
 				switch (payload.op) {
+					case GatewayOpcodes.Dispatch:
+						break;
+
 					case GatewayOpcodes.Heartbeat:
 						if (this.heartbeatInfo.first) {
 							this.heartbeatInfo.acknowledged = true;
@@ -168,7 +169,16 @@ export class Client extends EventEmitter {
 	}
 
 	/**
-	 * Creates an interval for the heartbeat.
+	 * Handle an event from the WebSocket
+	 */
+	private async _handleEvent(payload: GatewayDispatchPayload): Promise<void> {
+		switch (payload.t) {
+			case GatewayDispatchEvents.Ready:
+		}
+	}
+
+	/**
+	 * Create an interval for the heartbeat.
 	 */
 	private async _heartbeat(): Promise<void> {
 		this.heartbeatInfo.interval = setInterval(() => {

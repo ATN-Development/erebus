@@ -217,3 +217,11 @@ export interface Response {
  * A valid token for the API
  */
 export type Token = `${string}.${string}.${string}`;
+
+/**
+ * Advanced information for a heartbeat
+ */
+export interface AdvancedHeartbeatInfo extends HeartbeatInfo {
+	intervalTime: number;
+	interval: NodeJS.Timeout | null;
+}
