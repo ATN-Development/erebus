@@ -13,7 +13,12 @@ import {
 	Routes,
 	GatewayOpcodes,
 } from "discord-api-types/v9";
-import type { ClientOptions, AdvancedHeartbeatInfo, Intents } from ".";
+import type {
+	ClientOptions,
+	AdvancedHeartbeatInfo,
+	Intents,
+	PartialAPIApplication,
+} from ".";
 import User from "./structures/User";
 import UnavailableGuild from "./structures/UnavailableGuild";
 
@@ -25,6 +30,11 @@ export interface Client extends EventEmitter {
  * A Discord client
  */
 export class Client extends EventEmitter {
+	/**
+	 * The client's application
+	 */
+	application?: PartialAPIApplication;
+
 	/**
 	 * The guilds the client is in
 	 */
@@ -195,6 +205,8 @@ export class Client extends EventEmitter {
 				this.user = new User(payload.d.user, this);
 				for (const guild of payload.d.guilds)
 					this.guilds.set(guild.id, new UnavailableGuild(guild, this));
+				this.sessionId = payload.d.session_id;
+				this.application = payload.d.application;
 				this.emit("ready");
 				break;
 			default:

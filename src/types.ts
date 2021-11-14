@@ -1,6 +1,8 @@
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import type { URLSearchParams } from "url";
 import type { APIRequest } from "./rest";
+import type { Snowflake } from "discord-api-types/globals";
+import type { ApplicationFlags } from "discord-api-types/v9";
 
 /**
  * An attachment to send to the API
@@ -224,4 +226,12 @@ export type Token = `${string}.${string}.${string}`;
 export interface AdvancedHeartbeatInfo extends HeartbeatInfo {
 	intervalTime: number;
 	interval: NodeJS.Timeout | null;
+}
+
+/**
+ * Partial Application object sent by the server during Ready event
+ */
+export interface PartialAPIApplication {
+	id: Snowflake;
+	flags: ApplicationFlags;
 }
