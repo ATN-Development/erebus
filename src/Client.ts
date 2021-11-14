@@ -210,7 +210,7 @@ export class Client extends EventEmitter {
 	private _handleEvent(payload: GatewayDispatchPayload) {
 		switch (payload.t) {
 			case GatewayDispatchEvents.Ready:
-				this.user = new User(this, payload.d.user);
+				this.user = new User(payload.d.user, this);
 				for (const guild of payload.d.guilds)
 					this.guilds.set(guild.id, new UnavailableGuild(this, guild));
 				this.sessionId = payload.d.session_id;

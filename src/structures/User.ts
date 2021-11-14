@@ -90,7 +90,7 @@ export class User extends Base<APIUser> {
 	 * @param payload - The payload for the user
 	 * @param client - The client that instantiated this class
 	 */
-	constructor(client: Client, payload: APIUser) {
+	constructor(payload: APIUser, client: Client) {
 		super(client);
 
 		this.id = payload.id;
