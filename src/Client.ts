@@ -133,6 +133,15 @@ export class Client extends EventEmitter {
 						}
 						this.status = "reconnecting";
 						break;
+
+					case GatewayOpcodes.Hello:
+						this.heartbeatInfo.intervalTime = payload.d.heartbeat_interval;
+						this._heartbeat();
+						break;
+
+					case GatewayOpcodes.HeartbeatAck:
+						this.heartbeatInfo.acknowledged = true;
+						break;
 				}
 				this.status = "connected";
 			});
