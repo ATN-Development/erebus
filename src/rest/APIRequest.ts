@@ -14,7 +14,10 @@ import type {
 import { RequestStatus } from "../types";
 import type Rest from "./Rest";
 
-const { homepage, version } = require("../../package.json");
+const { homepage, version } = require("../../package.json") as {
+	homepage: string;
+	version: string;
+};
 const agent = new Agent({ keepAlive: true });
 
 /**
@@ -86,7 +89,7 @@ export class APIRequest {
 			body,
 		} = options;
 
-		if (!rest.client.token)
+		if (rest.client.token == null)
 			throw new TypeError(
 				"No token was provided in the client initialization and process.env.DISCORD_TOKEN wasn't set or the Client#token property was manually removed!"
 			);
@@ -104,7 +107,7 @@ export class APIRequest {
 			...headers,
 			// https://discord.com/developers/docs/reference#user-agent
 			"User-Agent": `DiscordBot (${homepage}, ${version})${
-				rest.client.userAgent ? ` ${rest.client.userAgent}` : ""
+				rest.client.userAgent != null ? ` ${rest.client.userAgent}` : ""
 			}`,
 			// Use a bot token to authenticate the request
 			"Authorization": `Bot ${rest.client.token}`,
@@ -133,7 +136,7 @@ export class APIRequest {
 	 * @returns A promise with the data received from the API or null if there is no data
 	 */
 	send() {
-		let chunk: string | FormData;
+		let chunk: FormData | string;
 
 		if (this.attachments.length) {
 			if (this.method === "GET")
@@ -210,14 +213,15 @@ export class APIRequest {
 	 * @param chunk The chunk to send
 	 */
 	private make(
-		resolve: (value: Response | PromiseLike<Response>) => void,
+		resolve: (value: PromiseLike<Response> | Response) => void,
 		reject: (reason?: any) => void,
-		chunk: string | FormData
+		chunk?: FormData | string
 	) {
 		// This is the data we'll receive
 		let data = "";
 		const timeout = setTimeout(() => {
 			// Abort the request if it takes more than 5 sec
+			// eslint-disable-next-line @typescript-eslint/no-use-before-define
 			req.destroy(
 				new Error(
 					`Request to path ${this.path} took more than 5 seconds and was aborted before ending.`
@@ -233,10 +237,14 @@ export class APIRequest {
 			},
 			(res) => {
 				// Handle a possible redirect
-				if ([301, 302].includes(res.statusCode!) && res.headers.location) {
+				if (
+					[301, 302].includes(res.statusCode!) &&
+					res.headers.location != null
+				) {
 					this.url.href = res.headers.location;
 					this.url.search = this.query.toString();
-					return this.make(resolve, reject, chunk);
+					this.make(resolve, reject, chunk);
+					return;
 				}
 
 				// Handle the data received
@@ -258,7 +266,6 @@ export class APIRequest {
 					});
 					this.status = RequestStatus.Finished;
 				});
-				return;
 			}
 		);
 
@@ -271,7 +278,7 @@ export class APIRequest {
 			this.status = RequestStatus.Failed;
 		});
 		// Send the data, if present
-		if (chunk) req.write(chunk);
+		if (chunk != null) req.write(chunk);
 		req.end();
 	}
 }

@@ -60,23 +60,24 @@ export class DiscordError extends Error {
 		let error: string;
 		const query = request.query.toString();
 
-		if (res.data) {
+		if (res.data != null) {
 			// Parse any JSON error data
 			const errorData = JSON.parse(res.data) as DiscordAPIError;
 
-			error = errorData.errors
-				? DiscordError.handleErrors(
-						errorData.errors,
-						`${errorData.message}\n`
-				  ).trim()
-				: errorData.message;
+			error =
+				errorData.errors != null
+					? DiscordError.handleErrors(
+							errorData.errors,
+							`${errorData.message}\n`
+					  ).trim()
+					: errorData.message;
 		} else error = res.status;
 		super(error);
 
 		if (query) this.query = query;
 
 		if (request.attachments.length) this.attachments = request.attachments;
-		if (request.body) this.body = request.body;
+		if (request.body != null) this.body = request.body;
 
 		this.headers = request.headers;
 		this.method = request.method;
@@ -118,7 +119,7 @@ export class DiscordError extends Error {
 	 */
 	private static handleObject(k: string, v: DiscordErrorData, error: string) {
 		// Check if the key is from an array
-		const isArray = !isNaN(+k);
+		const isArray = !isNaN(Number(k));
 
 		// If it's an array, put the key in brackets
 		error += `${isArray ? `[${k}]` : k}`;
@@ -131,17 +132,17 @@ export class DiscordError extends Error {
 			// If it's a normal error message, use the default resolver
 			error += `: ${this.handleErrors(v)}`;
 		else {
-			let prop: string | string[] = error.split("\n");
+			const splitted = error.split("\n");
 
-			// Save the "path" of the error
-			prop = prop[prop.length - 1]!;
 			// Do this again until all nested objects are parsed
 			Object.entries(v).forEach(
 				([k1, v1], i) =>
 					(error = this.handleObject(
 						k1,
 						v1,
-						`${error}${i ? prop : ""}${isArray ? "" : "."}`
+						`${error}${i ? splitted[splitted.length - 1]! : ""}${
+							isArray ? "" : "."
+						}`
 					))
 			);
 		}
