@@ -64,7 +64,9 @@ export class Client extends EventEmitter {
 	 */
 	async connect() {
 		this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
-		this.ws.on("open", () => {});
+		this.ws.on("open", () => {
+			// Will be implemented soon
+		});
 	}
 
 	/**
