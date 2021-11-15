@@ -140,7 +140,6 @@ export class Client extends EventEmitter {
 			);
 			this.ws.on("message", (data: Buffer) => {
 				const payload = JSON.parse(data.toString()) as GatewayReceivePayload;
-				console.log(payload);
 
 				switch (payload.op) {
 					case GatewayOpcodes.Dispatch:
@@ -173,6 +172,7 @@ export class Client extends EventEmitter {
 						}
 						break;
 					default:
+						console.log(`Unknown opcode: ${(payload as { op: number }).op}`);
 						break;
 				}
 			});
@@ -214,7 +214,6 @@ export class Client extends EventEmitter {
 				this.application = new Application(this, payload.d.application);
 				this.emit("ready", this);
 				break;
-
 			case GatewayDispatchEvents.Resumed:
 				this.emit("resumed");
 				break;
