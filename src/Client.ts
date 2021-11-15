@@ -135,12 +135,9 @@ export class Client extends EventEmitter {
 	async connect(): Promise<void> {
 		if (this.status === ClientStatus.Disconnected) {
 			this.status = ClientStatus.Connecting;
-			this.ws = new WebSocket(
-				`${await this.getGateway()}/?v=${GatewayVersion}&encoding=json`
-			);
+			this.ws = new WebSocket(await this.getGatewayUrl());
 			this.ws.on("message", (data: Buffer) => {
 				const payload = JSON.parse(data.toString()) as GatewayReceivePayload;
-				console.log(payload);
 
 				switch (payload.op) {
 					case GatewayOpcodes.Dispatch:
@@ -173,13 +170,14 @@ export class Client extends EventEmitter {
 						}
 						break;
 					default:
+						console.log(`Unknown opcode: ${(payload as { op: number }).op}`);
 						break;
 				}
 			});
 		} else if (this.status === ClientStatus.Connected)
 			throw new Error("Already connected");
 		else {
-			this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
+			this.ws = new WebSocket(await this.getGatewayUrl());
 			this.ws.on("open", () => {
 				this._resume();
 			});
@@ -190,14 +188,14 @@ export class Client extends EventEmitter {
 	 * Get the gateway url.
 	 * @returns The gateway url
 	 */
-	async getGateway(): Promise<string> {
+	async getGatewayUrl(): Promise<string> {
 		const info = await this.rest.request<APIGatewayBotInfo>(
 			Routes.gatewayBot(),
 			"GET"
 		);
 		if (info.session_start_limit.remaining <= 0)
 			await setPromiseTimeout(info.session_start_limit.reset_after);
-		return info.url;
+		return `${info.url}/?v=${GatewayVersion}&encoding=json`;
 	}
 
 	/**
@@ -214,7 +212,6 @@ export class Client extends EventEmitter {
 				this.application = new Application(this, payload.d.application);
 				this.emit("ready", this);
 				break;
-
 			case GatewayDispatchEvents.Resumed:
 				this.emit("resumed");
 				break;
