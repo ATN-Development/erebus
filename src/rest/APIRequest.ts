@@ -110,7 +110,7 @@ export class APIRequest {
 				rest.client.userAgent != null ? ` ${rest.client.userAgent}` : ""
 			}`,
 			// Use a bot token to authenticate the request
-			"Authorization": `Bot ${rest.client.token}`,
+			"Authorization": rest.client.token.startsWith("Bot ") ? rest.client.token : `Bot ${rest.client.token}`,
 		};
 	}
 
