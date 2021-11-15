@@ -31,3 +31,5 @@ export class GuildChannel extends Channel {
 		this.permissionOverwrites = data.permission_overwrites;
 	}
 }
+
+export default GuildChannel;
