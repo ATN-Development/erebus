@@ -1,38 +1,33 @@
+import type { Snowflake } from "discord-api-types/v9";
 import type { APIGuildChannel, Overwrite } from "..";
 import type Client from "../Client";
 import Channel from "./Channel";
 
 export class GuildChannel extends Channel {
 	/**
-	 * The client that instantiated this class
+	 * The ID of the guild
 	 */
-	client: Client;
+	guildId: Snowflake;
 
-  /**
-   * The ID of the guild
-   */
-	guildId: string;
+	/**
+	 * The position of the channel
+	 */
+	position: number;
 
-  /**
-   * The position of the channel
-   */
-  position: number;
+	/**
+	 * Explicit permission overwrites for members and roles
+	 */
+	permissionOverwrites: Overwrite[];
 
-  /**
-   * Explicit permission overwrites for members and roles
-   */
-  permissionOverwrites: Overwrite[];
-
-  /**
-   *
-   * @param client - The client that instantiated this class
-   * @param payload - The payload of the channel
-   */
-	constructor(client: Client, payload: APIGuildChannel) {
-		super(client, payload);
+	/**
+	 * @param client - The client that instantiated this class
+	 * @param data - The payload of the channel
+	 */
+	constructor(client: Client, data: APIGuildChannel) {
+		super(client, data);
 		this.client = client;
-    this.guildId = payload.guild_id;
-    this.position = payload.position;
-    this.permissionOverwrites = payload.permission_overwrites;
+		this.guildId = data.guild_id;
+		this.position = data.position;
+		this.permissionOverwrites = data.permission_overwrites;
 	}
 }

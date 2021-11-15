@@ -91,7 +91,7 @@ export class APIRequest {
 
 		if (rest.client.token == null)
 			throw new TypeError(
-				"No token was provided in the client initialization and process.env.DISCORD_TOKEN wasn't set or the Client#token property was manually removed!"
+				"No token was provided in the client initialization and process.env.DISCORD_CLIENT_TOKEN wasn't set or the Client#token property was manually removed!"
 			);
 
 		this.method = method;

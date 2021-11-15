@@ -17,7 +17,7 @@ export class Base<T> {
 	}
 
 	/**
-	 * Updates this structure with new data
+	 * Updates this structure with new data.
 	 */
 	update(_data: Partial<T>): this {
 		return this;

@@ -1,8 +1,5 @@
 import type Client from "../Client";
-import type {
-	APIChannel,
-	Snowflake,
-} from "discord-api-types/v9";
+import type { APIChannel, Snowflake } from "discord-api-types/v9";
 import Channel from "./Channel";
 import User from "./User";
 

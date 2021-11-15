@@ -1,7 +1,10 @@
 import type {
-	APIGatewayInfo,
+	APIGatewayBotInfo,
 	APIUser,
 	GatewayDispatchPayload,
+	GatewayHeartbeat,
+	GatewayIdentify,
+	GatewayPresenceUpdateData,
 	GatewayReceivePayload,
 	GatewayResume,
 	Snowflake,
@@ -9,6 +12,7 @@ import type {
 import {
 	GatewayDispatchEvents,
 	GatewayOpcodes,
+	GatewayVersion,
 	Routes,
 } from "discord-api-types/v9";
 import EventEmitter from "events";
@@ -18,14 +22,18 @@ import type {
 	ClientEvents,
 	ClientOptions,
 	Intents,
-	PartialAPIApplication,
 } from ".";
-import { ClientStatus } from "./types";
 import Rest from "./rest";
-import { UnavailableGuild, User } from "./structures";
+import { Application, UnavailableGuild, User } from "./structures";
+import { ClientStatus } from "./types";
+import { setPromiseTimeout } from "./Util";
 
 export interface Client extends EventEmitter {
 	on<T extends keyof ClientEvents>(
+		event: T,
+		listener: (...args: ClientEvents[T]) => void
+	): this;
+	once<T extends keyof ClientEvents>(
 		event: T,
 		listener: (...args: ClientEvents[T]) => void
 	): this;
@@ -42,7 +50,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The client's application
 	 */
-	application?: PartialAPIApplication;
+	application?: Application;
 
 	/**
 	 * The guilds the client is in
@@ -77,7 +85,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The last sequence number received from the WebSocket server
 	 */
-	seq = 0;
+	seq: number | null = null;
 
 	/**
 	 * The session ID of this client
@@ -87,7 +95,7 @@ export class Client extends EventEmitter {
 	/**
 	 * The status of the connection of this client
 	 */
-	status = ClientStatus.disconnected;
+	status = ClientStatus.Disconnected;
 
 	/**
 	 * The token used by this client
@@ -117,7 +125,7 @@ export class Client extends EventEmitter {
 
 		this.intents = intents;
 		this.largeThreshold = largeThreshold ?? 50;
-		this.token = token;
+		if (token != null) this.token = token;
 		this.userAgent = userAgent;
 	}
 
@@ -125,58 +133,50 @@ export class Client extends EventEmitter {
 	 * Connect this client to the websocket.
 	 */
 	async connect(): Promise<void> {
-		if (this.status === ClientStatus.disconnected) {
-			this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
-			this.ws.on("open", () => {
-				this._identify();
-			});
+		if (this.status === ClientStatus.Disconnected) {
+			this.status = ClientStatus.Connecting;
+			this.ws = new WebSocket(
+				`${await this.getGateway()}/?v=${GatewayVersion}&encoding=json`
+			);
 			this.ws.on("message", (data: Buffer) => {
 				const payload = JSON.parse(data.toString()) as GatewayReceivePayload;
+				console.log(payload);
+
 				switch (payload.op) {
 					case GatewayOpcodes.Dispatch:
 						this._handleEvent(payload);
 						break;
-
 					case GatewayOpcodes.Heartbeat:
-						if (this.heartbeatInfo.first) {
-							this.heartbeatInfo.acknowledged = true;
-							this.heartbeatInfo.first = false;
-							this._heartbeat();
-						} else if (!this.heartbeatInfo.acknowledged)
-							throw new Error("Received heartbeat before acknowledgement");
-						else if (this.heartbeatInfo.interval) this._heartbeat();
-						else throw new Error("Received heartbeat before heartbeat");
+						this._sendHeartbeat();
 						break;
-
 					case GatewayOpcodes.Reconnect:
 						this.ws!.close(5000, "Reconnecting");
 						void this.connect();
 						break;
-
 					case GatewayOpcodes.InvalidSession:
-						this.sessionId = undefined;
-						if (this.status === ClientStatus.resuming)
+						if (payload.d) this._resume();
+						if (this.status === ClientStatus.Resuming)
 							setTimeout(() => {
 								this._identify();
-							}, 5000);
-						else this._resume();
-						this.status = ClientStatus.resuming;
+							}, 1_000);
 						break;
-
 					case GatewayOpcodes.Hello:
 						this.heartbeatInfo.intervalTime = payload.d.heartbeat_interval;
+						this._sendHeartbeat();
 						this._heartbeat();
 						break;
-
 					case GatewayOpcodes.HeartbeatAck:
 						this.heartbeatInfo.acknowledged = true;
+						if (this.heartbeatInfo.first) {
+							this._identify();
+							this.heartbeatInfo.first = false;
+						}
 						break;
 					default:
 						break;
 				}
-				this.status = ClientStatus.connected;
 			});
-		} else if (this.status === ClientStatus.connected)
+		} else if (this.status === ClientStatus.Connected)
 			throw new Error("Already connected");
 		else {
 			this.ws = new WebSocket(`${await this.getGateway()}?v=9&encoding=json`);
@@ -191,10 +191,12 @@ export class Client extends EventEmitter {
 	 * @returns The gateway url
 	 */
 	async getGateway(): Promise<string> {
-		const info = await this.rest.request<APIGatewayInfo>(
-			Routes.gateway(),
+		const info = await this.rest.request<APIGatewayBotInfo>(
+			Routes.gatewayBot(),
 			"GET"
 		);
+		if (info.session_start_limit.remaining <= 0)
+			await setPromiseTimeout(info.session_start_limit.reset_after);
 		return info.url;
 	}
 
@@ -204,11 +206,12 @@ export class Client extends EventEmitter {
 	private _handleEvent(payload: GatewayDispatchPayload) {
 		switch (payload.t) {
 			case GatewayDispatchEvents.Ready:
+				this.status = ClientStatus.Connected;
 				this.user = new User(this, payload.d.user);
 				for (const guild of payload.d.guilds)
 					this.guilds.set(guild.id, new UnavailableGuild(this, guild));
 				this.sessionId = payload.d.session_id;
-				this.application = payload.d.application;
+				this.application = new Application(this, payload.d.application);
 				this.emit("ready", this);
 				break;
 
@@ -226,35 +229,50 @@ export class Client extends EventEmitter {
 	private _heartbeat() {
 		if (this.heartbeatInfo.interval) clearInterval(this.heartbeatInfo.interval);
 		this.heartbeatInfo.interval = setInterval(() => {
+			if (!this.heartbeatInfo.acknowledged) {
+				this.ws?.close(1002, "Heartbeat not acknowledged");
+				if (this.heartbeatInfo.interval)
+					clearInterval(this.heartbeatInfo.interval);
+				this.status = ClientStatus.Reconnecting;
+				return this.connect();
+			}
 			this._sendHeartbeat();
+			return undefined;
 		}, this.heartbeatInfo.intervalTime);
 	}
 
 	/**
 	 * Send an identify payload
 	 */
-	private _identify() {
-		const payload = {
-			token: this.token,
-			properties: {
-				$os: process.platform,
-				$browser: "erebus",
-				$device: "erebus",
+	private _identify(presence?: GatewayPresenceUpdateData) {
+		if (this.token == null) throw new Error("Cannot identify without a token");
+		const payload: GatewayIdentify = {
+			op: GatewayOpcodes.Identify,
+			d: {
+				presence,
+				token: this.token,
+				properties: {
+					$os: process.platform,
+					$browser: "erebus",
+					$device: "erebus",
+				},
+				large_threshold: this.largeThreshold,
+				intents: this.intents,
 			},
-			large_threshold: this.largeThreshold,
-			intents: this.intents,
 		};
 
-		if (!this.ws) throw new Error("No websocket");
-		this.ws.send(JSON.stringify({ op: GatewayOpcodes.Identify, d: payload }));
+		if (!this.ws) throw new Error("No websocket available");
+		this.ws.send(JSON.stringify(payload));
 	}
 
 	/**
 	 * Send a resume payload
 	 */
 	private _resume() {
-		if (this.token == null || this.sessionId == null)
-			throw new Error("Cannot resume without a token and session ID");
+		if (this.token == null || this.sessionId == null || this.seq == null)
+			throw new Error(
+				"Cannot resume without a token, session ID and sequence number"
+			);
 		const resumePayload: GatewayResume = {
 			op: GatewayOpcodes.Resume,
 			d: {
@@ -263,6 +281,7 @@ export class Client extends EventEmitter {
 				seq: this.seq,
 			},
 		};
+		this.status = ClientStatus.Resuming;
 		if (this.ws) this.ws.send(JSON.stringify(resumePayload));
 		else throw new Error("Cannot resume without a WebSocket");
 	}
@@ -271,11 +290,13 @@ export class Client extends EventEmitter {
 	 * Send a heartbeat to the gateway
 	 */
 	private _sendHeartbeat() {
-		const heartbeat = {
-			op: 1,
-			d: this.seq ? this.seq : null,
+		const heartbeat: GatewayHeartbeat = {
+			op: GatewayOpcodes.Heartbeat,
+			d: this.seq,
 		};
-		this.ws?.send(JSON.stringify(heartbeat));
+		this.heartbeatInfo.acknowledged = false;
+		if (this.ws) this.ws.send(JSON.stringify(heartbeat));
+		else throw new Error("Cannot send heartbeat without a WebSocket");
 	}
 }
 
