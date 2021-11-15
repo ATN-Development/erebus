@@ -7,6 +7,7 @@ export * from "./GuildChannel";
 export * from "./PrivateChannel";
 export * from "./Team";
 export * from "./TeamMember";
+export * from "./TextChannel";
 export * from "./UnavailableGuild";
 export * from "./User";
 

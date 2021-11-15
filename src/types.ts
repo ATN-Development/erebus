@@ -286,7 +286,13 @@ export interface APIGuildChannel extends APIChannel {
 	position: number;
 	permission_overwrites: Overwrite[];
 	name: string;
-	topic: string | null | undefined;
 	nsfw: boolean;
 	parent_id: Snowflake | null | undefined;
+}
+
+export interface APITextChannel extends APIGuildChannel {
+	last_message_id: Snowflake | null;
+	last_pin_timestamp?: string | null;
+	rate_limit_per_user?: number;
+	topic?: string | null;
 }
