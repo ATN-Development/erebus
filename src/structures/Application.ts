@@ -144,7 +144,14 @@ export class Application extends Base<
 			this.cover = data.cover_image;
 	}
 
-	update(data: Partial<APIApplication | Pick<APIApplication, "flags" | "id">>) {
+	/**
+	 *
+	 * @param data - The data to update the application class with
+	 * @returns {Application} - The updated class
+	 */
+	update(
+		data: Partial<APIApplication | Pick<APIApplication, "flags" | "id">>
+	): this {
 		super.update(data);
 
 		if (data.flags != null) this.flags = data.flags;

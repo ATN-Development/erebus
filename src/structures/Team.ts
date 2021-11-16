@@ -50,6 +50,11 @@ export class Team extends Base<APITeam> {
 		if (data.icon != null) this.icon = data.icon;
 	}
 
+	/**
+	 *
+	 * @param data - The data to update the team class with
+	 * @returns {Team} - The updated class
+	 */
 	update(data: Partial<APITeam>): this {
 		super.update(data);
 
