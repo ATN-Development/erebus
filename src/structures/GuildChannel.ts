@@ -3,6 +3,9 @@ import type { APIGuildChannel, Overwrite } from "..";
 import type Client from "../Client";
 import Channel from "./Channel";
 
+/**
+ * A guild channel
+ */
 export class GuildChannel extends Channel {
 	/**
 	 * The ID of the guild

@@ -1,6 +1,9 @@
 import type { APITextChannel } from "..";
 import TextChannel from "./TextChannel";
 
+/**
+ * A news channel
+ */
 export class NewsChannel extends TextChannel {
 	/**
 	 * @param data - The payload of the channel

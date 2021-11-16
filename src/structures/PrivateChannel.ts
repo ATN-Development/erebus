@@ -3,6 +3,9 @@ import type { APIChannel, Snowflake } from "discord-api-types/v9";
 import Channel from "./Channel";
 import User from "./User";
 
+/**
+ * A private channel
+ */
 export class PrivateChannel extends Channel {
 	/**
 	 * The client that instantiated this class
