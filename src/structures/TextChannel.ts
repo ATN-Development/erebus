@@ -40,6 +40,23 @@ export class TextChannel extends GuildChannel {
 		if (data.topic != null) this.topic = data.topic;
 		else this.topic = null;
 	}
+
+	/**
+	 * @param data - The payload of the channel
+	 * @returns {TextChannel} - The updated class
+	 */
+	update(data: APITextChannel): this {
+		if (data.last_message_id != null) this.lastMessageId = data.last_message_id;
+		if (data.last_pin_timestamp != null)
+			this.lastPinTimestamp = new Date(data.last_pin_timestamp);
+		else this.lastPinTimestamp = null;
+		if (data.rate_limit_per_user != null)
+			this.rateLimitPerUser = data.rate_limit_per_user;
+		else this.rateLimitPerUser = 0;
+		if (data.topic != null) this.topic = data.topic;
+		else this.topic = null;
+		return this;
+	}
 }
 
 export default TextChannel;
