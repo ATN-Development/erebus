@@ -369,3 +369,13 @@ export interface ThreadChannelMetadata {
 export interface APIStageChannel extends APIVoiceChannel {
 	topic?: string;
 }
+
+/**
+ * Type definition for all guild channel classes
+ */
+export type AnyGuildChannel =
+	| NewsChannel
+	| StageChannel
+	| StoreChannel
+	| TextChannel
+	| VoiceChannel;

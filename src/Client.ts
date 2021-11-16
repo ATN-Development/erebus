@@ -28,6 +28,7 @@ import type {
 	Intents,
 	VoiceChannel,
 	APIStageChannel,
+	AnyGuildChannel,
 } from ".";
 import Rest from "./rest";
 import {
@@ -215,11 +216,11 @@ export class Client extends EventEmitter {
 	/**
 	 *
 	 * @param payload - The payload of the channel modify event
-	 * @returns {NewsChannel | StageChannel | StoreChannel | TextChannel | VoiceChannel} - A channel class
+	 * @returns {AnyGuildChannel} - A channel class
 	 */
 	private _handleChannelPayload(
 		payload: GatewayChannelModifyDispatch
-	): NewsChannel | StageChannel | StoreChannel | TextChannel | VoiceChannel {
+	): AnyGuildChannel {
 		let channel:
 			| NewsChannel
 			| StageChannel
