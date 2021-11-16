@@ -30,6 +30,13 @@ export class GuildChannel extends Channel {
 		this.position = data.position;
 		this.permissionOverwrites = data.permission_overwrites;
 	}
+
+	update(data: APIGuildChannel): this {
+		if (data.guild_id) this.guildId = data.guild_id;
+		if (data.position) this.position = data.position;
+		this.permissionOverwrites = data.permission_overwrites;
+		return this;
+	}
 }
 
 export default GuildChannel;
