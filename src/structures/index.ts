@@ -10,5 +10,6 @@ export * from "./TeamMember";
 export * from "./TextChannel";
 export * from "./UnavailableGuild";
 export * from "./User";
+export * from "./VoiceChannel";
 
 export default Base;
