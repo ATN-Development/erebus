@@ -154,6 +154,9 @@ export class Client extends EventEmitter {
 			this.ws.on("message", (data: Buffer) => {
 				const payload = JSON.parse(data.toString()) as GatewayReceivePayload;
 
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (payload.s != null) this.seq = payload.s;
+
 				switch (payload.op) {
 					case GatewayOpcodes.Dispatch:
 						this._handleEvent(payload);
