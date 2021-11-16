@@ -3,6 +3,7 @@ import type {
 	APIChannel,
 	ChannelType,
 	Snowflake,
+	VideoQualityMode,
 } from "discord-api-types/v9";
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import type { URLSearchParams } from "url";
@@ -295,4 +296,11 @@ export interface APITextChannel extends APIGuildChannel {
 	last_pin_timestamp?: string | null;
 	rate_limit_per_user?: number;
 	topic?: string | null;
+}
+
+export interface APIVoiceChannel extends APIGuildChannel {
+	bitrate: number;
+	rtc_region: string | null;
+	user_limit: number;
+	video_quality_mode: VideoQualityMode;
 }

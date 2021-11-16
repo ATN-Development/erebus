@@ -1,9 +1,9 @@
 import type { APITextChannel } from "..";
 import type { Snowflake } from "discord-api-types/v9";
 import type Client from "../Client";
-import Channel from "./Channel";
+import GuildChannel from "./GuildChannel";
 
-export class TextChannel extends Channel {
+export class TextChannel extends GuildChannel {
 	/**
 	 * The ID of the last message sent in this channel
 	 */
