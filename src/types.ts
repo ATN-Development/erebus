@@ -278,6 +278,9 @@ export type PartialStructure<T extends Base<any>, E extends keyof T> = {
 		: undefined;
 };
 
+/**
+ * A guild channel type definition
+ */
 export interface APIGuildChannel extends APIChannel {
 	type:
 		| ChannelType.GuildCategory
@@ -297,6 +300,9 @@ export interface APIGuildChannel extends APIChannel {
 	parent_id: Snowflake | null | undefined;
 }
 
+/**
+ * A guild's text channel type definition
+ */
 export interface APITextChannel extends APIGuildChannel {
 	last_message_id: Snowflake | null;
 	last_pin_timestamp?: string | null;
@@ -304,6 +310,9 @@ export interface APITextChannel extends APIGuildChannel {
 	topic?: string | null;
 }
 
+/**
+ * A guild's voice channel type definition
+ */
 export interface APIVoiceChannel extends APIGuildChannel {
 	bitrate: number;
 	rtc_region: string | null;
