@@ -27,6 +27,19 @@ export class PrivateChannel extends Channel {
 			(recipient) => new User(client, recipient)
 		);
 	}
+
+	/**
+	 * @param data - The payload of the channel
+	 * @returns {PrivateChannel} - The updated class
+	 */
+	update(data: APIChannel): this {
+		if (data.last_message_id != null) this.lastMessageId = data.last_message_id;
+		if (data.recipients)
+			this.recipients = data.recipients.map(
+				(recipient) => new User(this.client, recipient)
+			);
+		return this;
+	}
 }
 
 export default PrivateChannel;
