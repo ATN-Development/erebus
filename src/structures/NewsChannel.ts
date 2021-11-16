@@ -6,3 +6,5 @@ export class NewsChannel extends TextChannel {
 		return super.update(data);
 	}
 }
+
+export default NewsChannel;

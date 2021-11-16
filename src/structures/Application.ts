@@ -191,3 +191,5 @@ export class Application extends Base<
 		return this.name == null;
 	}
 }
+
+export default Application;
