@@ -10,7 +10,16 @@ import type {
 } from "discord-api-types/v9";
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import type { URLSearchParams } from "url";
-import type { Client, APIRequest, Base } from ".";
+import type {
+	Client,
+	APIRequest,
+	Base,
+	NewsChannel,
+	StageChannel,
+	StoreChannel,
+	TextChannel,
+	VoiceChannel,
+} from ".";
 
 /**
  * An attachment to send to the API
@@ -33,6 +42,14 @@ export interface Attachment {
 export interface ClientEvents {
 	ready: [client: Client];
 	resumed: [];
+	channelCreate: [
+		channel:
+			| NewsChannel
+			| StageChannel
+			| StoreChannel
+			| TextChannel
+			| VoiceChannel
+	];
 }
 
 /**

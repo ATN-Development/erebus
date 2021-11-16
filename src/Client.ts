@@ -1,6 +1,7 @@
 import type {
 	APIGatewayBotInfo,
 	APIUser,
+	GatewayChannelModifyDispatch,
 	GatewayDispatchPayload,
 	GatewayHeartbeat,
 	GatewayIdentify,
@@ -14,17 +15,30 @@ import {
 	GatewayOpcodes,
 	GatewayVersion,
 	Routes,
+	ChannelType,
 } from "discord-api-types/v9";
 import EventEmitter from "events";
 import WebSocket from "ws";
 import type {
 	AdvancedHeartbeatInfo,
+	APIGuildChannel,
+	APITextChannel,
 	ClientEvents,
 	ClientOptions,
 	Intents,
+	VoiceChannel,
+	APIStageChannel,
 } from ".";
 import Rest from "./rest";
-import { Application, UnavailableGuild, User } from "./structures";
+import {
+	Application,
+	NewsChannel,
+	StageChannel,
+	StoreChannel,
+	TextChannel,
+	UnavailableGuild,
+	User,
+} from "./structures";
 import { ClientStatus } from "./types";
 import { setPromiseTimeout } from "./Util";
 
@@ -199,6 +213,41 @@ export class Client extends EventEmitter {
 	}
 
 	/**
+	 *
+	 * @param payload - The payload of the channel modify event
+	 * @returns {NewsChannel | StageChannel | StoreChannel | TextChannel | VoiceChannel} - A channel class
+	 */
+	private _handleChannelPayload(
+		payload: GatewayChannelModifyDispatch
+	): NewsChannel | StageChannel | StoreChannel | TextChannel | VoiceChannel {
+		let channel:
+			| NewsChannel
+			| StageChannel
+			| StoreChannel
+			| TextChannel
+			| VoiceChannel;
+		switch (payload.d.type) {
+			case ChannelType.GuildText:
+				channel = new TextChannel(this, payload.d as APITextChannel);
+				return channel;
+			case ChannelType.GuildNews:
+				channel = new NewsChannel(this, payload.d as APITextChannel);
+				return channel;
+			case ChannelType.GuildStageVoice:
+				channel = new StageChannel(this, payload.d as APIStageChannel);
+				return channel;
+			case ChannelType.GuildStore:
+				channel = new StoreChannel(this, payload.d as APIGuildChannel);
+				return channel;
+			case ChannelType.GuildVoice:
+				channel = new StoreChannel(this, payload.d as APIGuildChannel);
+				return channel;
+			default:
+				throw new Error("Unknown channel type");
+		}
+	}
+
+	/**
 	 * Handle an event from the WebSocket
 	 */
 	private _handleEvent(payload: GatewayDispatchPayload) {
@@ -214,6 +263,9 @@ export class Client extends EventEmitter {
 				break;
 			case GatewayDispatchEvents.Resumed:
 				this.emit("resumed");
+				break;
+			case GatewayDispatchEvents.ChannelCreate:
+				this.emit("channelCreate", this._handleChannelPayload(payload));
 				break;
 			default:
 				break;
