@@ -11,7 +11,6 @@ import type {
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import type { URLSearchParams } from "url";
 import type {
-	Client,
 	APIRequest,
 	Base,
 	NewsChannel,
@@ -40,7 +39,7 @@ export interface Attachment {
  * Events emitted by the client
  */
 export interface ClientEvents {
-	ready: [client: Client];
+	ready: [];
 	resumed: [];
 	channelCreate: [
 		channel:

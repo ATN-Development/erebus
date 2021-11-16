@@ -259,7 +259,7 @@ export class Client extends EventEmitter {
 					this.guilds.set(guild.id, new UnavailableGuild(this, guild));
 				this.sessionId = payload.d.session_id;
 				this.application = new Application(this, payload.d.application);
-				this.emit("ready", this);
+				this.emit("ready");
 				break;
 			case GatewayDispatchEvents.Resumed:
 				this.emit("resumed");
