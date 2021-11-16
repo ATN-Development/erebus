@@ -27,6 +27,16 @@ export class UnavailableGuild extends Base<APIUnavailableGuild> {
 		this.id = payload.id;
 		this.unavailable = payload.unavailable;
 	}
+
+	/**
+	 * @param data - The payload of the guild
+	 * @returns {UnavailableGuild} - The updated class
+	 */
+	update(data: APIUnavailableGuild): this {
+		this.id = data.id;
+		this.unavailable = data.unavailable;
+		return this;
+	}
 }
 
 export default UnavailableGuild;
