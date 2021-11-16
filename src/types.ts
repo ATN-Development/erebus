@@ -336,6 +336,9 @@ export interface APIThreadChannel extends APIGuildChannel {
 	thread_metadata?: APIThreadMetadata;
 }
 
+/**
+ * A guild's thread channel metadata type definition
+ */
 export interface ThreadChannelMetadata {
 	archived: boolean;
 	autoArchiveDuration: ThreadAutoArchiveDuration;
