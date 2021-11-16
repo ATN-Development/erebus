@@ -257,6 +257,9 @@ export interface AdvancedHeartbeatInfo extends HeartbeatInfo {
  */
 export type PartialAPIApplication = Pick<APIApplication, "flags" | "id">;
 
+/**
+ * Permission overwrite for a specific channel, or for a specific role
+ */
 export interface Overwrite {
 	id: Snowflake;
 	type: 0 | 1;
@@ -264,6 +267,9 @@ export interface Overwrite {
 	deny: string;
 }
 
+/**
+ * Structure typing for a partial object
+ */
 export type PartialStructure<T extends Base<any>, E extends keyof T> = {
 	[K in keyof T]: T[K] extends (...args: any[]) => any
 		? T[K]
