@@ -5,6 +5,7 @@ import type {
 	APIThreadMetadata,
 	ChannelType,
 	Snowflake,
+	ThreadAutoArchiveDuration,
 	VideoQualityMode,
 } from "discord-api-types/v9";
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
@@ -332,5 +333,13 @@ export interface APIThreadChannel extends APIGuildChannel {
 	message_count: number;
 	owner_id: Snowflake;
 	rate_limit_per_user?: number;
-	thread_metadata: APIThreadMetadata;
+	thread_metadata?: APIThreadMetadata;
+}
+
+export interface ThreadChannelMetadata {
+	archived: boolean;
+	autoArchiveDuration: ThreadAutoArchiveDuration;
+	archiveTimestamp: Date;
+	locked?: boolean;
+	invitable?: boolean;
 }

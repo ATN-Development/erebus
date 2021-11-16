@@ -1,11 +1,7 @@
 import GuildChannel from "./GuildChannel";
 import type Client from "../Client";
-import type { APIThreadChannel } from "..";
-import type {
-	APIThreadMember,
-	APIThreadMetadata,
-	Snowflake,
-} from "discord-api-types/v9";
+import type { APIThreadChannel, ThreadChannelMetadata } from "..";
+import type { APIThreadMember, Snowflake } from "discord-api-types/v9";
 
 /**
  * A guild's thread channel
@@ -44,7 +40,7 @@ export class ThreadChannel extends GuildChannel {
 	/**
 	 * Thread-specific fields not needed by other channels
 	 */
-	threadMetadata: APIThreadMetadata;
+	threadMetadata?: ThreadChannelMetadata;
 
 	/**
 	 *
@@ -63,7 +59,14 @@ export class ThreadChannel extends GuildChannel {
 		if (data.rate_limit_per_user != null)
 			this.rateLimitPerUser = data.rate_limit_per_user;
 		else this.rateLimitPerUser = 0;
-		this.threadMetadata = data.thread_metadata;
+		if (data.thread_metadata)
+			this.threadMetadata = {
+				archiveTimestamp: new Date(data.thread_metadata.archive_timestamp),
+				archived: data.thread_metadata.archived,
+				autoArchiveDuration: data.thread_metadata.auto_archive_duration,
+				locked: data.thread_metadata.locked,
+				invitable: data.thread_metadata.invitable,
+			};
 	}
 
 	/**
@@ -81,7 +84,14 @@ export class ThreadChannel extends GuildChannel {
 		if (data.rate_limit_per_user != null)
 			this.rateLimitPerUser = data.rate_limit_per_user;
 		else this.rateLimitPerUser = 0;
-		this.threadMetadata = data.thread_metadata;
+		if (data.thread_metadata)
+			this.threadMetadata = {
+				archiveTimestamp: new Date(data.thread_metadata.archive_timestamp),
+				archived: data.thread_metadata.archived,
+				autoArchiveDuration: data.thread_metadata.auto_archive_duration,
+				locked: data.thread_metadata.locked,
+				invitable: data.thread_metadata.invitable,
+			};
 
 		return this;
 	}
