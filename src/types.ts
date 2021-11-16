@@ -1,6 +1,8 @@
 import type {
 	APIApplication,
 	APIChannel,
+	APIThreadMember,
+	APIThreadMetadata,
 	ChannelType,
 	Snowflake,
 	VideoQualityMode,
@@ -318,4 +320,17 @@ export interface APIVoiceChannel extends APIGuildChannel {
 	rtc_region: string | null;
 	user_limit: number;
 	video_quality_mode: VideoQualityMode;
+}
+
+/**
+ * A guild's thread channel type definition
+ */
+export interface APIThreadChannel extends APIGuildChannel {
+	last_message_id: Snowflake | null;
+	member?: APIThreadMember;
+	member_count: number;
+	message_count: number;
+	owner_id: Snowflake;
+	rate_limit_per_user?: number;
+	thread_metadata: APIThreadMetadata;
 }
