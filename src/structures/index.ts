@@ -7,6 +7,7 @@ export * from "./GuildChannel";
 export * from "./NewsChannel";
 export * from "./NewsThreadChannel";
 export * from "./PrivateChannel";
+export * from "./PublicThreadChannel";
 export * from "./StoreChannel";
 export * from "./Team";
 export * from "./TeamMember";
