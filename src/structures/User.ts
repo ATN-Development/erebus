@@ -110,7 +110,12 @@ export class User extends Base<APIUser> {
 		this.publicFlags = payload.public_flags;
 	}
 
-	public update(data: Partial<APIUser>) {
+	/**
+	 *
+	 * @param data - The data to update the user class
+	 * @returns {User} - The updated class
+	 */
+	public update(data: Partial<APIUser>): this {
 		if (data.username != null) this.username = data.username;
 		if (data.discriminator != null) this.discriminator = data.discriminator;
 		if (data.avatar != null) this.avatar = data.avatar;
