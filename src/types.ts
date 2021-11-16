@@ -346,3 +346,10 @@ export interface ThreadChannelMetadata {
 	locked?: boolean;
 	invitable?: boolean;
 }
+
+/**
+ * A guild's stage channel
+ */
+export interface APIStageChannel extends APIVoiceChannel {
+	topic?: string;
+}
