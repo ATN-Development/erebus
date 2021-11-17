@@ -41,14 +41,7 @@ export interface Attachment {
 export interface ClientEvents {
 	ready: [];
 	resumed: [];
-	channelCreate: [
-		channel:
-			| NewsChannel
-			| StageChannel
-			| StoreChannel
-			| TextChannel
-			| VoiceChannel
-	];
+	channelCreate: [channel: AnyGuildChannel];
 }
 
 /**
