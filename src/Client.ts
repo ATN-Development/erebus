@@ -26,7 +26,6 @@ import type {
 	ClientEvents,
 	ClientOptions,
 	Intents,
-	VoiceChannel,
 	APIStageChannel,
 	AnyGuildChannel,
 } from ".";
@@ -224,12 +223,7 @@ export class Client extends EventEmitter {
 	private _handleChannelPayload(
 		payload: GatewayChannelModifyDispatch
 	): AnyGuildChannel {
-		let channel:
-			| NewsChannel
-			| StageChannel
-			| StoreChannel
-			| TextChannel
-			| VoiceChannel;
+		let channel: AnyGuildChannel;
 		switch (payload.d.type) {
 			case ChannelType.GuildText:
 				channel = new TextChannel(this, payload.d as APITextChannel);
