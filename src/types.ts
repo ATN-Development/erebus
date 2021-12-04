@@ -14,6 +14,7 @@ import type {
 	APIRequest,
 	Base,
 	NewsChannel,
+	PrivateChannel,
 	StageChannel,
 	StoreChannel,
 	TextChannel,
@@ -39,9 +40,11 @@ export interface Attachment {
  * Events emitted by the client
  */
 export interface ClientEvents {
+	channelCreate: [channel: AnyGuildChannel];
+	error: [error: Error];
 	ready: [];
 	resumed: [];
-	channelCreate: [channel: AnyGuildChannel];
+	warn: [message: string];
 }
 
 /**
@@ -372,3 +375,8 @@ export type AnyGuildChannel =
 	| StoreChannel
 	| TextChannel
 	| VoiceChannel;
+
+/**
+ * Type definition for all channel classes
+ */
+export type AnyChannel = AnyGuildChannel | PrivateChannel;
