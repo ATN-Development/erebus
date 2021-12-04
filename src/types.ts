@@ -1,6 +1,24 @@
+import type {
+	APIApplication,
+	APIChannel,
+	APIThreadMember,
+	APIThreadMetadata,
+	ChannelType,
+	Snowflake,
+	ThreadAutoArchiveDuration,
+	VideoQualityMode,
+} from "discord-api-types/v9";
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import type { URLSearchParams } from "url";
-import type { APIRequest } from "./rest";
+import type {
+	APIRequest,
+	Base,
+	NewsChannel,
+	StageChannel,
+	StoreChannel,
+	TextChannel,
+	VoiceChannel,
+} from ".";
 
 /**
  * An attachment to send to the API
@@ -15,6 +33,15 @@ export interface Attachment {
 	 * The data for this buffer
 	 */
 	data: Buffer;
+}
+
+/**
+ * Events emitted by the client
+ */
+export interface ClientEvents {
+	ready: [];
+	resumed: [];
+	channelCreate: [channel: AnyGuildChannel];
 }
 
 /**
@@ -42,6 +69,17 @@ export interface ClientOptions {
 	 * @see https://discord.com/developers/docs/reference#user-agent
 	 */
 	userAgent?: string;
+}
+
+/**
+ * The state of the client
+ */
+export enum ClientStatus {
+	Disconnected,
+	Connecting,
+	Connected,
+	Reconnecting,
+	Resuming,
 }
 
 /**
@@ -217,3 +255,120 @@ export interface Response {
  * A valid token for the API
  */
 export type Token = `${string}.${string}.${string}`;
+
+/**
+ * Advanced information for a heartbeat
+ */
+export interface AdvancedHeartbeatInfo extends HeartbeatInfo {
+	intervalTime: number;
+	interval: NodeJS.Timeout | null;
+}
+
+/**
+ * Partial Application object sent by the server during Ready event
+ */
+export type PartialAPIApplication = Pick<APIApplication, "flags" | "id">;
+
+/**
+ * Permission overwrite for a specific channel, or for a specific role
+ */
+export interface Overwrite {
+	id: Snowflake;
+	type: 0 | 1;
+	allow: string;
+	deny: string;
+}
+
+/**
+ * Structure typing for a partial object
+ */
+export type PartialStructure<T extends Base<any>, E extends keyof T> = {
+	[K in keyof T]: T[K] extends (...args: any[]) => any
+		? T[K]
+		: K extends E | keyof Base<any>
+		? T[K]
+		: undefined;
+};
+
+/**
+ * A guild channel type definition
+ */
+export interface APIGuildChannel extends APIChannel {
+	type:
+		| ChannelType.GuildCategory
+		| ChannelType.GuildNews
+		| ChannelType.GuildNewsThread
+		| ChannelType.GuildPrivateThread
+		| ChannelType.GuildPublicThread
+		| ChannelType.GuildStageVoice
+		| ChannelType.GuildStore
+		| ChannelType.GuildText
+		| ChannelType.GuildVoice;
+	guild_id: Snowflake;
+	position: number;
+	permission_overwrites: Overwrite[];
+	name: string;
+	nsfw: boolean;
+	parent_id: Snowflake | null | undefined;
+}
+
+/**
+ * A guild's text channel type definition
+ */
+export interface APITextChannel extends APIGuildChannel {
+	last_message_id: Snowflake | null;
+	last_pin_timestamp?: string | null;
+	rate_limit_per_user?: number;
+	topic?: string | null;
+}
+
+/**
+ * A guild's voice channel type definition
+ */
+export interface APIVoiceChannel extends APIGuildChannel {
+	bitrate: number;
+	rtc_region: string | null;
+	user_limit: number;
+	video_quality_mode: VideoQualityMode;
+}
+
+/**
+ * A guild's thread channel type definition
+ */
+export interface APIThreadChannel extends APIGuildChannel {
+	last_message_id: Snowflake | null;
+	member?: APIThreadMember;
+	member_count: number;
+	message_count: number;
+	owner_id: Snowflake;
+	rate_limit_per_user?: number;
+	thread_metadata?: APIThreadMetadata;
+}
+
+/**
+ * A guild's thread channel metadata type definition
+ */
+export interface ThreadChannelMetadata {
+	archived: boolean;
+	autoArchiveDuration: ThreadAutoArchiveDuration;
+	archiveTimestamp: Date;
+	locked?: boolean;
+	invitable?: boolean;
+}
+
+/**
+ * A guild's stage channel
+ */
+export interface APIStageChannel extends APIVoiceChannel {
+	topic?: string;
+}
+
+/**
+ * Type definition for all guild channel classes
+ */
+export type AnyGuildChannel =
+	| NewsChannel
+	| StageChannel
+	| StoreChannel
+	| TextChannel
+	| VoiceChannel;
