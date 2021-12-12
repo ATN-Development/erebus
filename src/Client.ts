@@ -315,8 +315,7 @@ export class Client extends EventEmitter {
 		};
 
 		if (!this.ws) {
-			this.emit("error", new Error("No websocket available"));
-			return;
+			throw new Error("No websocket available");
 		}
 		this.ws.send(JSON.stringify(payload));
 	}
