@@ -295,9 +295,8 @@ export class Client extends EventEmitter {
 	 * Send an identify payload
 	 */
 	private _identify(presence?: GatewayPresenceUpdateData): void {
-		if (this.token == null) {
-			throw, new Error("Cannot identify without a token");
-		}
+		if (this.token == null) throw new Error("Cannot identify without a token");
+		
 		const payload: GatewayIdentify = {
 			op: GatewayOpcodes.Identify,
 			d: {
@@ -313,9 +312,8 @@ export class Client extends EventEmitter {
 			},
 		};
 
-		if (!this.ws) {
-			throw new Error("No websocket available");
-		}
+		if (!this.ws) throw new Error("No websocket available");
+		
 		this.ws.send(JSON.stringify(payload));
 	}
 
