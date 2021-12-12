@@ -296,8 +296,7 @@ export class Client extends EventEmitter {
 	 */
 	private _identify(presence?: GatewayPresenceUpdateData): void {
 		if (this.token == null) {
-			this.emit("error", new Error("Cannot identify without a token"));
-			return;
+			throw, new Error("Cannot identify without a token");
 		}
 		const payload: GatewayIdentify = {
 			op: GatewayOpcodes.Identify,
