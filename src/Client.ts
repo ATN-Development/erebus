@@ -275,7 +275,7 @@ export class Client extends EventEmitter {
 				this.emit("channelDelete", this._handleChannelPayload(payload));
 				break;
 			default:
-				this.emit("unknown", payload);
+				this.emit("unknownPayload", payload);
 				break;
 		}
 	}
