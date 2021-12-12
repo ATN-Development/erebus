@@ -195,7 +195,7 @@ export class Client extends EventEmitter {
 				}
 			});
 		} else if (this.status === ClientStatus.Connected)
-			this.emit("error", new Error("Already connected"));
+			throw new Error("Already connected");
 		else {
 			this.ws = new WebSocket(await this.getGatewayUrl());
 			this.ws.on("open", () => {
