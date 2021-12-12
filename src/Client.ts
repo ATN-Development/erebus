@@ -271,7 +271,11 @@ export class Client extends EventEmitter {
 			case GatewayDispatchEvents.ChannelUpdate:
 				this.emit("channelUpdate", this._handleChannelPayload(payload));
 				break;
+			case GatewayDispatchEvents.ChannelDelete:
+				this.emit("channelDelete", this._handleChannelPayload(payload));
+				break;
 			default:
+				this.emit("unknown", payload);
 				break;
 		}
 	}
@@ -299,7 +303,7 @@ export class Client extends EventEmitter {
 	 */
 	private _identify(presence?: GatewayPresenceUpdateData): void {
 		if (this.token == null) throw new Error("Cannot identify without a token");
-		
+
 		const payload: GatewayIdentify = {
 			op: GatewayOpcodes.Identify,
 			d: {
@@ -316,7 +320,7 @@ export class Client extends EventEmitter {
 		};
 
 		if (!this.ws) throw new Error("No websocket available");
-		
+
 		this.ws.send(JSON.stringify(payload));
 	}
 
