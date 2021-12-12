@@ -47,7 +47,7 @@ export interface ClientEvents {
 	error: [error: Error];
 	ready: [];
 	resumed: [];
-	unknown: [data: GatewayDispatchPayload];
+	unknownPayload: [data: GatewayDispatchPayload];
 	warn: [message: string];
 }
 
