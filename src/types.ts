@@ -41,6 +41,7 @@ export interface Attachment {
  */
 export interface ClientEvents {
 	channelCreate: [channel: AnyGuildChannel];
+	channelUpdate: [channel: AnyGuildChannel];
 	error: [error: Error];
 	ready: [];
 	resumed: [];

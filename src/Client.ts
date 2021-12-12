@@ -268,6 +268,9 @@ export class Client extends EventEmitter {
 			case GatewayDispatchEvents.ChannelCreate:
 				this.emit("channelCreate", this._handleChannelPayload(payload));
 				break;
+			case GatewayDispatchEvents.ChannelUpdate:
+				this.emit("channelUpdate", this._handleChannelPayload(payload));
+				break;
 			default:
 				break;
 		}
