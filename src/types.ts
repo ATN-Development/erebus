@@ -4,6 +4,7 @@ import type {
 	APIThreadMember,
 	APIThreadMetadata,
 	ChannelType,
+	GatewayDispatchPayload,
 	Snowflake,
 	ThreadAutoArchiveDuration,
 	VideoQualityMode,
@@ -41,10 +42,12 @@ export interface Attachment {
  */
 export interface ClientEvents {
 	channelCreate: [channel: AnyGuildChannel];
+	channelDelete: [channel: AnyGuildChannel];
 	channelUpdate: [channel: AnyGuildChannel];
 	error: [error: Error];
 	ready: [];
 	resumed: [];
+	unknownPayload: [data: GatewayDispatchPayload];
 	warn: [message: string];
 }
 
