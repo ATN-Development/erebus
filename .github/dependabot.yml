@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "15:00"
+      timezone: "Europe/Rome"
     commit-message:
       prefix: "deps"
       prefix-development: "devDeps"
