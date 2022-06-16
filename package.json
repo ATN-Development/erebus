@@ -16,7 +16,7 @@
   },
   "description": "From the darkness to you, bring your Discord bot to a next level.",
   "devDependencies": {
-    "@tsconfig/node14": "^1.0.1",
+    "@tsconfig/node14": "^1.0.3",
     "@types/node": "^14.17.31",
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.27.1",
